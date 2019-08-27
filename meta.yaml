@@ -1,0 +1,33 @@
+# {% set version = "1.0.0" %} #define version variable
+
+package:
+  name: morphometrix #{{ GIT_DESCRIBE_TAG }} 
+  version: '1.0.0'
+
+source:
+  #path: morphometrix/
+  git_url: https://github.com/wingtorres/morphometrix/
+
+build:
+  noarch: python
+  number: '0'
+  script: python setup.py install #python -m pip install #--no-deps --ignore-installed  # 
+
+requirements:
+  build:
+    - python #setup.py install 
+ #   - setuptools
+  run:
+    - python
+    - numpy
+    - scipy
+    - pyqt
+    
+# tests:
+#    imports:
+#     - morphometrix
+    
+about:
+  home: https://github.com/wingtorres/morphometrix/
+  license: MIT
+  summary: GUI for photogrammetry
