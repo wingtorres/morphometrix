@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+import os
 import sys
 import csv
 import numpy as np
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsItem, QMessageBox, QInputDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsItem, QMessageBox, QInputDialog
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 from scipy.special import comb
 
 #To-do list (descending priority)
@@ -644,7 +646,7 @@ def main(args=None):
         def __init__(self, parent=None
                     ):  #init methods runs every time (core application stuff)
             super(Window, self).__init__()
-            self.setGeometry(50, 50, 600, 250)  #x,y,width,height
+            self.setGeometry(50, 50, 600, 500)  #x,y,width,height
             #elf.setStyleSheet("background-color: rgb(0,0,0)") #change color
             #self.setStyleSheet("font-color: rgb(0,0,0)") #change color
             self.setWindowTitle("MorphoMetriX")
@@ -674,6 +676,12 @@ def main(args=None):
             self.label_not = QLabel("Notes:")
             self.notes = QPlainTextEdit(self)
             #self.notes.resize(280,40)
+            
+            self.manual = QWebEngineView()
+            #fpath = os.path.abspath('/Users/WalterTorres/Dropbox/KC_WT/MorphoMetrix/morphometrix/README.html')
+            #webpage = QtCore.QUrl.fromLocalFile(fpath)
+            webpage = QtCore.QUrl('https://github.com/wingtorres/morphometrix/blob/master/README.html')
+            self.manual.setUrl(webpage)
 
             # self.okay = QPushButton("okay?",self)
             self.fileimport = QPushButton("Start measuring", self)
@@ -698,6 +706,7 @@ def main(args=None):
             # grid.addWidget(self.okay,5,1)
             grid.addWidget(self.fileimport, 7, 1)
             grid.addWidget(self.exit, 7, 3)
+            grid.addWidget(self.manual, 8,0,1,4)
 
             self.setLayout(grid)
             # self.connect(self.okay, QtCore.SIGNAL("clicked()"), self.getvars)

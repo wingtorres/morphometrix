@@ -67,7 +67,7 @@ After a unique name is assigned to the custom length or angle, you are ready to 
 *Exporting Measurements*
 
 
-Once measurements are complete, select “Export Measurements” and select a folder to save a [.csv](<https://github.com/wingtorres/morphometrix/blob/master/demo/test-image.csv>) containing all the measurements (in meters) and their labels and a .png image of the measurement lines drawn on the image.
+Once measurements are complete, select “Export Measurements” and select a folder to save a [.csv](<https://github.com/wingtorres/morphometrix/blob/master/demo/test-image.csv>) containing all the measurements (in meters) and their labels and a [.png](<https://github.com/wingtorres/morphometrix/blob/master/demo/test-image-measurements.png>) image of the measurement lines drawn on the image.
 
 
 *Open Next Image*
@@ -80,7 +80,17 @@ For a demonstration of ``MorphoMetriX`` used to measure a Minke whale, please re
 
 # Attribution
 
-If you make use of this code, please cite the JOSS paper: ???
+If you make use of this code, you should cite the following paper: 
+
+"JOSS DOI here"
+
+# Contributing 
+
+We would love for you to contribute to MorphoMetriX! Please read our [contributing guidelines](CONTRIBUTING.md).
+
+# Code of Conduct
+
+See [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)
 
 # License
 [![Anaconda-Server Badge](https://anaconda.org/wingtorres/morphometrix/badges/license.svg)](https://anaconda.org/wingtorres/morphometrix)

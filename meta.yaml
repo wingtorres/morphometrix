@@ -30,4 +30,4 @@ requirements:
 about:
   home: https://github.com/wingtorres/morphometrix/
   license: MIT
-  summary: GUI for photogrammetry
+  summary: A GUI for photogrammetry
