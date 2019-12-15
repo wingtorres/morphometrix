@@ -680,7 +680,7 @@ def main(args=None):
             self.manual = QWebEngineView()
             #fpath = os.path.abspath('/Users/WalterTorres/Dropbox/KC_WT/MorphoMetrix/morphometrix/README.html')
             #webpage = QtCore.QUrl.fromLocalFile(fpath)
-            webpage = QtCore.QUrl('https://github.com/wingtorres/morphometrix/blob/master/README.html')
+            webpage = QtCore.QUrl('https://wingtorres.github.io/morphometrix/')
             self.manual.setUrl(webpage)
 
             # self.okay = QPushButton("okay?",self)

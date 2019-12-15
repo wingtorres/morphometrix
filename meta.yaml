@@ -1,8 +1,8 @@
 # {% set version = "1.0.0" %} #define version variable
 
 package:
-  name: morphometrix #{{ GIT_DESCRIBE_TAG }} 
-  version: '1.0.0'
+  name: morphometrix 
+  version: '1.0.1'
 
 source:
   #path: morphometrix/
