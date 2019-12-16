@@ -51,6 +51,6 @@ Several software systems, written in MATLAB and R, have been developed to extrac
 
 # Acknowledgements
 
-We acknowledge Clara Bird for application development support, the students in the "Drones in Marine Biology, Ecology, and Conservation" Duke University summer course for beta testing, the Pivers Island Data Club for user feedback, and Michelle Pan for UX suggestions. This work was supported by the Duke University Marine Laboratory.
+We acknowledge Dr. David Johnston for project feedback and recommendations, Clara Bird for application development support, the students in the "Drones in Marine Biology, Ecology, and Conservation" Duke University summer course for beta testing, the Pivers Island Data Club for user feedback, and Michelle Pan for UX suggestions. This work was supported by the Duke University Marine Laboratory.
 
 # References
