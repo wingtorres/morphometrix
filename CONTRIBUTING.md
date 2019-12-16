@@ -10,11 +10,14 @@ Refer to the [README](README.md).
 
 ## Code Style
 
-### Variable Naming
-Not all current code follows the conventions below but these will be followed for future developments. 
-- `lowerCamelCase` General variables
-- `UpperCamelCase` Functions
-- Maximize the use  of semantic and descriptive variables names (e.g. `faceIndices` not `fcInd` or `fi`). Avoid abbreviations except in cases of industry wide usage. In some cases non-descriptive and short variable names are exceptable for instance vertices (points), faces, edges, colors and logic arrays may be denoted `V`, `F`, `E`, `C`, `L`. Furthermore, if a mathematrical symbol or letter is commonly used for some entity it may be acceptable to use short names e.g. coordinates may be referred to as `X`, `Y` and `Z` and image coordinates of indices may be referred to as `I`, `J` and `K`. In some cases the use of capital or non-capital letters refers to tensors/matrices/arrays/sets and scalars/components/subsets respectively, e.g. a multitude of scalars `c` may be contained within an array or matrix `C`, or a cell array `D` may contain individual entries referred to as `d`. 
+This code generally tries to adhere to [PEP-8]( <https://www.python.org/dev/peps/pep-0008/>) standards for style, howevever we emphasize the PEP-8 team's point that "A Foolish Consistency is the Hobgoblin of Little Minds". From their website...
+
+*Some other good reasons to ignore a particular guideline:*
+
+* When applying the guideline would make the code less readable, even for someone who is used to reading code that follows this PEP.
+* To be consistent with surrounding code that also breaks it (maybe for historic reasons) -- although this is also an opportunity to clean up someone else's mess (in true XP style).
+* Because the code in question predates the introduction of the guideline and there is no other reason to be modifying that code.
+* When the code needs to remain compatible with older versions of Python that don't support the feature recommended by the style guide.
 
 ## Testing
 Use the material provided in the [demo]( <https://github.com/wingtorres/morphometrix/blob/master/demo>)  directory for testing
