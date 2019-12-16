@@ -82,7 +82,8 @@ For a demonstration of ``MorphoMetriX`` used to measure a Minke whale, please re
 
 If you make use of this code, you should cite the following paper: 
 
-"JOSS DOI here"
+Torres et al., (2019). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source
+Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
 
 # Contributing 
 
