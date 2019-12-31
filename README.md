@@ -31,9 +31,9 @@ Once an image has been imported, you can begin making measurements by selecting 
 -	**Complete a length measurement** - Double click
 -	**Replace last point** - Select “Undo” 
 
-__*Measure Length*__ (–)
+__*Measure Length*__
 
-Select “Measure Length”. A box will appear for the user to create a unique measurement name, i.e. “Total Length”, “Fluke Span”, etc. Decide if you want a “Bezier fit?” applied to the length measurement. This is especially useful if the animal is curved, as it will apply a smooth fitting curve to the points selected in the measurement. Make single clicks to make a measurement and double click to finish. 
+Select “Measure Length”. A box will appear for the user to create a unique measurement name, i.e. “Total Length”, “Fluke Span”, etc. Decide if you want a “Bezier fit" applied to the length measurement. This is especially useful if the animal is curved, as it will apply a smooth fitting curve to the points selected in the measurement. Make single clicks to make a measurement and double click to finish. 
 
 ![image 3](images/Picture2.png)
 
