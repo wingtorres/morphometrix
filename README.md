@@ -69,7 +69,7 @@ __*Exporting Measurements*__
 
 Once measurements are complete, select “Export Measurements” and select a folder to save a [.csv](<https://github.com/wingtorres/morphometrix/blob/master/demo/test-image.csv>) containing all the measurements (in meters) and their labels and a [.png](<https://github.com/wingtorres/morphometrix/blob/master/demo/test-image-measurements.png>) image of the measurement lines drawn on the image.
 
-*Open Next Image*
+__*Open Next Image*__
 
 To measure a new animal/image select “New Image”, enter updated parameters in the left input window (if any), and begin measuring.
 
