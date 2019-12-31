@@ -37,7 +37,7 @@ Select “Measure Length”. A box will appear for the user to create a unique m
 
 ![image 3](images/Picture2.png)
 
-__*Measuring Widths*__ ($+$)
+__*Measuring Widths*__ 
 
 After a length measurement is complete, widths segments perpendicular to the length measurement can be applied by selecting “Measure Widths”. The picture below has 20 width segments, or in 5% increments of total length. Each successive width is highlighted to guide the selection of points along the width segment.
 
@@ -51,13 +51,13 @@ Once a point has been selected on each highlighted width line, the width measure
 
 ![image 5](images/Picture5.png)
 
-__*Measure Area*__ ($\circ$)
+__*Measure Area*__ 
 
 To create a custom area measurement, select “Measure Area”. A box will appear for the user to create a unique label, i.e. “Fluke Area” or “Diatom Patch”. Once a label is created, click points to draw a polygon around the desired area. A blue dot will denote the final connecting point of the polygon and the area measured will be shaded. 
 
 ![image 6](images/Picture6.png)
 
-__*Measure Angle*__ ($\measuredangle$)
+__*Measure Angle*__ 
 
 To create a custom angle measurement, select “Measure Angle”. A box will appear for the user to create a unique label, i.e. “Sweep Angle” or “Fluke-Leading Edge”. Draw the first vector, click to create a vertex, then draw the second vector. The angle will be calculated between the two vectors.
 
