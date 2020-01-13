@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
         self.undoButton.clicked.connect(self.undo)
         self.undoButton.setEnabled(False)
 
-        self.bezier = QCheckBox("Bezier fit?", self)
+        self.bezier = QCheckBox("Bezier fit", self)
         self.bezier.setEnabled(False)
         self.bezier.setChecked(True)
 
