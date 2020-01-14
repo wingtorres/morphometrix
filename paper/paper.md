@@ -34,19 +34,11 @@ MorphoMetriX is an open-source application that overcomes some of the limitation
 ``MorphoMetriX`` has already been used on several projects with a variety of cetacean species, including bottlenose dolphins, blue, humpback, fin, Antarctic minke, dwarf minke, pilot, and beaked whales. It is also ideal for training and teaching in the classroom for lessons and labs in photogrammetry and morphometrics.
 
 # Figures
-![Photogrammetry](../images/figure1.png)
+![Photogrammetric basics of how each UAS image is scaled to convert measurements in pixels to real world values (i.e. meters). Altitude is the distance between the camera lens and the animal/object of interest. Pixel dimensions is determined by dividing the sensor width of the camera (mm) by the image width (pixels). MorphoMetriX uses the altitude, focal length of camera (mm), and pixel dimensions to calculate the ground sampling distance (GSD), the distance each pixel represents on the ground. MorphoMetriX then multiplies the GSD by lengths measured in pixels by the user to scale to real world values (m).](../images/figure1.png)
 
-*Figure 1.* Photogrammetric basics of how each UAS image is scaled to convert measurements in pixels to real world values (i.e. meters). Altitude is the distance between the camera lens and the animal/object of interest. Pixel dimensions is determined by dividing the sensor width of the camera (mm) by the image width (pixels). MorphoMetriX uses the altitude, focal length of camera (mm), and pixel dimensions to calculate the ground sampling distance (GSD), the distance each pixel represents on the ground. MorphoMetriX then multiplies the GSD by lengths measured in pixels by the user to scale to real world values (m).
+![Image of Antarctic minke whale imported into MorphoMetriX. Measurements of total length and width (in 5% increments of total length in this case), as well as the area of a diatom patch (shaded polygon). Highlighted width lines guide the user to select a point along the width line, in this case the edge of the whale. A red dot marks the selected point and the next width line is highlighted. If the user accidentally selects a point adjacent to the highlighted line, the red dot will snap to the closest point on the highlighted line and record that point.](../images/figure2.png)
 
-![Opening Window](../images/figure2.png)
-
-*Figure 2.* Image of Antarctic minke whale imported into MorphoMetriX. Measurements of total length and width (in 5% increments of total length in this case), as well as the area of a diatom patch (shaded polygon). Highlighted width lines guide the user to select a point along the width line, in this case the edge of the whale. A red dot marks the selected point and the next width line is highlighted. If the user accidentally selects a point adjacent to the highlighted line, the red dot will snap to the closest point on the highlighted line and record that point. 
-
-
-![GUI](../images/figure3.png)
-
-
-*Figure 3.* Zoomed in view of the dialog box in MorphoMetriX for the user to enter details about the UAS flight altitude, camera specifications, the number of width segments desired (20 in this case), and any notes. See Figures 1 and 2 for example of inputs.
+![Zoomed in view of the dialog box in MorphoMetriX for the user to enter details about the UAS flight altitude, camera specifications, the number of width segments desired (20 in this case), and any notes. See Figures 1 and 2 for example of inputs.](../images/figure3.png)
 
 # Acknowledgements
 
