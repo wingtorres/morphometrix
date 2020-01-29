@@ -4,7 +4,7 @@ import sys
 import csv
 import numpy as np
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QHBoxLayout, QVBoxLayout, QToolBar, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QDesktopWidget
+from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QHBoxLayout, QVBoxLayout, QToolBar, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QDesktopWidget, QShortcut
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from scipy.special import comb
 
@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
         self.resizeDocks( (docked1,docked2), (400,400), QtCore.Qt.Horizontal )
 
         self.exportButton = QPushButton("Export Measurements", self)
-        self.exportButton.clicked.connect(self.export_meas)
+        self.exportButton.clicked.connect(self.export_measurements)
         self.exportButton.setEnabled(False)
         
         self.importImage = QPushButton("New Image", self)
@@ -168,9 +168,14 @@ class MainWindow(QMainWindow):
         self.angleButton.setCheckable(True)
         self.angleNames = []
 
+        shortcut_polyClose = QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Tab), self)
+        shortcut_polyClose.activated.connect(self.iw.polyClose)     
+
         self.undoButton = QPushButton("Undo", self)
         self.undoButton.clicked.connect(self.undo)
         self.undoButton.setEnabled(False)
+        shortcut_undo = QShortcut(QtGui.QKeySequence('Ctrl+Z'), self)
+        shortcut_undo.activated.connect(self.undo)
 
         self.bezier = QCheckBox("Bezier fit", self)
         self.bezier.setEnabled(False)
@@ -191,6 +196,7 @@ class MainWindow(QMainWindow):
         self.tb.addWidget(self.widthsButton)
         self.tb.addWidget(self.areaButton)
         self.tb.addWidget(self.angleButton)
+       # self.tb.addWidget(self.polyButton)
         self.tb.addWidget(self.undoButton)
         self.tb.addWidget(self.bezier)
         #self.tb.setOrientation(QtCore.Qt.Vertical)
@@ -225,7 +231,9 @@ class MainWindow(QMainWindow):
         self.angleNames = []
         self.areaNames = []
         self.lengthNames = []
-        self.iw.measurements = [[]] 
+        #self.iw.measurements = [[]] 
+        self.iw.widths = []
+        self.iw.lengths = [[]]
         self.iw.L = posData(
             np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))  #lengths
         self.iw.A = posData(
@@ -249,6 +257,7 @@ class MainWindow(QMainWindow):
         self.iw.scene.realline = None
         self.iw.scene.testline = None
         self.iw.scene.ellipseItem = None
+        self.iw.scene.area_ellipseItem = None
         self.iw.scene.polyItem = None
         self.iw.image_name = None
     
@@ -263,6 +272,7 @@ class MainWindow(QMainWindow):
             self.lengthNames.append(self.lel.text())
             QApplication.setOverrideCursor(QtCore.Qt.CrossCursor)  #change cursor
             self.widthsButton.setChecked(False)
+            self.widthsButton.setEnabled(False)
             self.iw.line_count = 0
             self.iw.measuring_length = True
             self.iw.L = posData(
@@ -319,12 +329,14 @@ class MainWindow(QMainWindow):
         if self.iw.measuring_length:
             self.iw._thispos = self.iw._lastpos
             self.iw.L.downdate()  #remove data
+            self.iw.line_count += -1
             self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
             self.iw.scene.realline = False
 
         if self.iw.measuring_area:
             self.iw._thispos = self.iw._lastpos
             self.iw.A.downdate()  #remove data
+            self.iw.line_count += -1
             self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
             self.iw.scene.realline = False                
 
@@ -342,7 +354,7 @@ class MainWindow(QMainWindow):
             self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
             self.iw.scene.realline = False
 
-    def export_meas(self):
+    def export_measurements(self):
 
         fac = max(self.iw.pixmap.width(), self.iw.pixmap.height()) / max(
             self.iw.pixmap_fit.width(),
@@ -356,10 +368,12 @@ class MainWindow(QMainWindow):
         if name:
 
             #Convert pixels to meters
-            measurements = [ f * fac * self.pixeldim * self.altitude / self.focal for f in self.iw.measurements]
+            #measurements = [ f * fac * self.pixeldim * self.altitude / self.focal for f in self.iw.measurements]
+            #lengths = [ f * fac * self.pixeldim * self.altitude / self.focal for f in self.iw.lengths]
+            #print(self.iw.widths)
             areas = self.iw.areaValues * (
                 fac * self.pixeldim * self.altitude / self.focal)**2
-            optical = np.array([
+            values_optical = np.array([
                 self.subWin.id.text(), self.image_name[0], self.focal,
                 self.altitude, self.pixeldim
             ])
@@ -367,28 +381,35 @@ class MainWindow(QMainWindow):
                 'Image ID', 'Image Path', 'Focal Length', 'Altitude',
                 'Pixel Dimension'
             ]
-            names_widths = ['Object'] + ['Length (m)'] + self.iw.widthNames[0]
+            names_widths = ['Object'] +  ['Length (m)'] + ['Widths (%)'] # + self.iw.widthNames[0]
+            #names_widths.append([self.iw.widthNames[0]])	    
 
-            #Write .csv file
+	    #Write .csv file
+            print(name)
             with open(name + '.csv', 'w') as csvfile:
                 writer = csv.writer(csvfile)
-                for (f, g) in zip(names_optical, optical):
+                for (f, g) in zip(names_optical, values_optical):
                     writer.writerow([f, g])
                 writer.writerow(['Notes', self.subWin.notes.toPlainText()])
 
                 writer.writerow([''])
                 writer.writerow(names_widths)
 
-                kk = 0
-                for k,(f,m) in enumerate(zip(measurements, self.lengthNames)):
-                    if (len(f.ravel()) > 1) and k > 0: #if widths draw new header
-                        kk += 1
-                        n = self.iw.widthNames[kk]
-                        if not n == self.iw.widthNames[kk-1]:
-                            writer.writerow( [''] + [''] + n )
-                    vals = map(lambda t: format(t, '.3f'), f.ravel())    
-                    line = [ [m] + list(vals)]
-                    writer.writerows(line)
+                for k,m in enumerate(self.lengthNames):
+                    #format and convert pixel length measurement
+                    l =  "{0:.2f}".format( self.iw.lengths[k] * fac * self.pixeldim * self.altitude / self.focal ) 
+                    
+                    if any(self.iw.widths[k]): #check if width measurement exists for length
+                        n = self.iw.widthNames[k]
+                        writer.writerow( [''] + [''] + n )
+                        #format and convert pixel width measurement
+                        vals = [ "{0:.2f}".format(g * fac * self.pixeldim * self.altitude / self.focal) for g in self.iw.widths[k]]
+                        line = [m] + [l] + list(vals)
+                    else:
+                        #vals = l #f.copy()
+                        line = [m] + [l]
+
+                    writer.writerow(line)
 
                 writer.writerow([''])
                 writer.writerow(['Object'] + ['Angle'])
@@ -400,7 +421,7 @@ class MainWindow(QMainWindow):
                 writer.writerow([''])
                 writer.writerow(['Object'] + ['Area (m\u00B2)'])
 
-                for k, f in enumerate(self.areaNames):  #write areas-
+                for k, f in enumerate(self.areaNames):  #write areas
                     line = [[f] + ["{0:.3f}".format(areas[k])]]  #need to convert NaNs to empty
                     writer.writerows(line)                   
 
@@ -430,7 +451,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.oldPos = None
         self.factor = 1.0
         self.numwidths = None
-        self.widthNames = ['']
+        self.widthNames = [] #initialize as empty list
         self.d = {}  #dictionary for line items
         #self.k = 0 #initialize counter so lines turn yellow
         self.L = posData(np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))
@@ -492,23 +513,23 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
             if self.measuring_area and self.line_count > 2:
                 intersect, xi, yi, k = self.A.checkIntersect(data.x(),data.y())
-                if self.scene.ellipseItem: #remove existing intersect
-                    self.scene.removeItem(self.scene.ellipseItem)
-                    self.scene.ellipseItem = False
+                if self.scene.area_ellipseItem: #remove existing intersect
+                    self.scene.removeItem(self.scene.area_ellipseItem)
+                    self.scene.area_ellipseItem = False
                 if self.scene.polyItem:  
                     self.scene.removeItem(self.scene.polyItem)  
                     self.scene.polyItem = False                         
                 if intersect:                 
                     #indicate intersect point    
                     p = QtCore.QPointF(xi, yi)
-                    self.scene.ellipseItem = QGraphicsEllipseItem(0, 0, 10, 10)                        
-                    self.scene.ellipseItem.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
-                    self.scene.ellipseItem.setBrush(
+                    self.scene.area_ellipseItem = QGraphicsEllipseItem(0, 0, 10, 10)                        
+                    self.scene.area_ellipseItem.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
+                    self.scene.area_ellipseItem.setBrush(
                     QtGui.QBrush(QtCore.Qt.blue, style=QtCore.Qt.SolidPattern))
-                    self.scene.ellipseItem.setFlag(
+                    self.scene.area_ellipseItem.setFlag(
                     QGraphicsItem.ItemIgnoresTransformations,
                     False)  #size stays small, but doesnt translate if set to false
-                    self.scene.addItem(self.scene.ellipseItem)
+                    self.scene.addItem(self.scene.area_ellipseItem)
                     #shade polygon region
                     points = [ QtCore.QPointF(x,y) for x,y in zip( self.A.x[k:], self.A.y[k:] ) ]
                     points.append(QtCore.QPointF(xi,yi))
@@ -537,9 +558,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         if self._lastpos and self.measuring_length:
             # catmull roms spline instead?
             # https://codeplea.com/introduction-to-splines
-            nt = 2000 #max(1000, self.numwidths * 50)  #num of interpolating points
-
+            
             if self.parent().bezier.isChecked():
+                nt = 2000 #max(1000, self.numwidths * 50)  #num of interpolating points
                 # https://gist.github.com/Alquimista/1274149
                 # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
                 def bernstein(i, n, t):
@@ -576,7 +597,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
                 #integrate for length
                 self.l = np.cumsum(np.hypot(np.gradient(x), np.gradient(y))) 
-                self.measurements[-1] = self.l
+                #self.measurements[-1] = self.l[-1]
+                #self.lengths[-1] = self.l[-1]
 
                 #draw cubic line to interpolated points
                 for i in range(1, nt - 1):
@@ -599,8 +621,14 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
                 self.l = np.cumsum(np.hypot(np.diff(x),
                                             np.diff(y)))  #integrate for length
-                self.measurements[-1] = self.l[-1]
+                #self.measurements[-1] = self.l[-1]
+        
+            self.lengths[-1] = self.l[-1]
+            self.lengths.extend([np.nan])
+            self.widths.append([])
+            self.widthNames.append([])
 
+        #self.measurements.extend([np.nan])
         QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)  #change cursor
         if self.parent().bezier.isChecked():
             self.parent().widthsButton.setEnabled(True)
@@ -610,6 +638,29 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.measuring_length = False
         self.measuring_angle = False
         self._thispos = False
+    
+    def polyClose(self): #make into hot key not button
+        if self.measuring_area:
+            if self.line_count > 2: #cant make polygon w/ two lines
+                self.measuring_area = False
+                A = self.A.calcArea()
+                self.areaValues = np.append(self.areaValues, A) #add area values
+                #draw permanent polygon
+                points = [ QtCore.QPointF(x,y) for x,y in zip( self.A.x, self.A.y ) ]
+                self.scene.polyItem2 = QGraphicsPolygonItem(QtGui.QPolygonF(points))
+                self.scene.polyItem2.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )  
+                if self.scene.polyItem:  
+                    self.scene.removeItem(self.scene.polyItem) #remove mouseover polygon   
+                    self.scene.polyItem = False #remove mouseover polygon 
+                self.scene.removeItem(self.scene.testline)
+                self.scene.testline = False 
+                self.scene.addItem(self.scene.polyItem2) #shade in polygon
+                self.parent().statusbar.showMessage('Polygon area measurement completed')
+                self.parent().areaButton.setChecked(False)
+                self.parent().polyButton.setChecked(False)
+                self.parent().bezier.setEnabled(True) #make bezier fit available again
+            else:
+                print("cannot draw polygon with fewer than three vertices")
 
     def measure_widths(self):
 
@@ -626,7 +677,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         #number of possible measurements per segment (length + #widths)
         #self.measurements = np.empty((0, self.iw.nm + 1), int) * np.nan
         self.numwidths = int(self.parent().subWin.numwidths.text()) 
-        self.measurements[-1] = np.append( self.l[-1], np.zeros(self.numwidths-1)*np.nan )
+        #self.measurements[-1] = np.append( self.l[-1], np.zeros(self.numwidths-1)*np.nan ) #preallocate measurements
+        self.widths[-1] = np.empty(self.numwidths-1, dtype='float') #preallocate measurements
         self.widthNames[-1] = [
             '{0:2.2f}% Width'.format(100 * f / self.numwidths)
             for f in np.arange(1, self.numwidths)
@@ -729,11 +781,13 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         if self.measuring_length:
             self.L.update(data.x(), data.y())  # update total length
             self.line_count += 1
+
         elif self.measuring_area:
             self.line_count += 1
             intersect = False 
             if self.line_count > 2: #cant make polygon w/ two lines
                 intersect, xi, yi, k = self.A.checkIntersect(data.x(),data.y())
+                self.parent().polyButton.setEnabled(True)
             if intersect: 
                 self.measuring_area = False
                 self.A.update(xi,yi) #update with intersect point
@@ -799,9 +853,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     (self.W.x[1::2] - self.W.x[0::2])**2 +
                     (self.W.y[1::2] - self.W.y[0::2])**2)  #calculate widths
                 #self.measurements[-1,1:] = width #update most recent row w/ length measurement
-                self.measurements[-1][1:] = width
-                self.measurements.extend([np.nan])
-                self.widthNames.extend([''])
+                #self.measurements[-1][1:] = width
+                self.widths[-1] = width
 
     #MouseWheel Zoom
     def wheelEvent(self, event):
