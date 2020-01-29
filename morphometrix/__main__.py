@@ -52,7 +52,7 @@ class Window(QWidget):
         self.focal.setText('50')
 
         self.label_alt = QLabel("Altitude (m):")
-        self.altitude = QLineEdit(self)
+        self.altitude = QLineEdit()
         self.altitude.setText('50')
 
         self.label_pd = QLabel("Pixel Dimension (mm/pixel)")
@@ -64,7 +64,7 @@ class Window(QWidget):
         self.numwidths.setText('10')
 
         self.label_not = QLabel("Notes:")
-        self.notes = QPlainTextEdit(self)
+        self.notes = QPlainTextEdit()
         
         # self.manual = QWebEngineView()
         #fpath = os.path.abspath('/Users/WalterTorres/Dropbox/KC_WT/MorphoMetrix/morphometrix/README.html')
