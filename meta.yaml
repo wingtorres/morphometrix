@@ -1,4 +1,4 @@
-# {% set version = "1.0.0" %} #define version variable
+# {% set version = "1.0.2" %} #define version variable
 
 package:
   name: morphometrix 
