@@ -3,10 +3,13 @@ import os
 import sys
 import csv
 import numpy as np
+from math import factorial
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QHBoxLayout, QVBoxLayout, QToolBar, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QDesktopWidget, QShortcut
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from scipy.special import comb
+
+def comb(n, k):
+    return factorial(n) / factorial(k) / factorial(n - k)
 
 #To-do list (descending priority)
 #   -combine UI into one window (done)
@@ -196,7 +199,6 @@ class MainWindow(QMainWindow):
         self.tb.addWidget(self.widthsButton)
         self.tb.addWidget(self.areaButton)
         self.tb.addWidget(self.angleButton)
-       # self.tb.addWidget(self.polyButton)
         self.tb.addWidget(self.undoButton)
         self.tb.addWidget(self.bezier)
         #self.tb.setOrientation(QtCore.Qt.Vertical)
@@ -657,7 +659,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 self.scene.addItem(self.scene.polyItem2) #shade in polygon
                 self.parent().statusbar.showMessage('Polygon area measurement completed')
                 self.parent().areaButton.setChecked(False)
-                self.parent().polyButton.setChecked(False)
                 self.parent().bezier.setEnabled(True) #make bezier fit available again
             else:
                 print("cannot draw polygon with fewer than three vertices")
@@ -787,7 +788,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             intersect = False 
             if self.line_count > 2: #cant make polygon w/ two lines
                 intersect, xi, yi, k = self.A.checkIntersect(data.x(),data.y())
-                self.parent().polyButton.setEnabled(True)
+                self.parent().areaButton.setEnabled(True)
             if intersect: 
                 self.measuring_area = False
                 self.A.update(xi,yi) #update with intersect point
