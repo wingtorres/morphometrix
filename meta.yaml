@@ -1,8 +1,7 @@
-# {% set version = "1.0.2" %} #define version variable
 
 package:
   name: morphometrix 
-  version: '1.0.2'
+  version: "1.0.2"
 
 source:
   #path: morphometrix/
@@ -15,16 +14,12 @@ build:
 
 requirements:
   build:
-    - python #setup.py install 
- #   - setuptools
+    - python 
+  
   run:
     - python
     - numpy
     - pyqt
-    
-# tests:
-#    imports:
-#     - morphometrix
     
 about:
   home: https://github.com/wingtorres/morphometrix/
