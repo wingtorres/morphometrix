@@ -5,7 +5,7 @@
 ## Installation 
 [![Anaconda-Server Badge](https://anaconda.org/wingtorres/morphometrix/badges/version.svg)](https://anaconda.org/wingtorres/morphometrix)
 
-The easiest way to get `MorphoMetriX` is to install it into the [Anaconda](https://www.anaconda.com/distribution/) Python distribution. In Anaconda create and/or activate your preferred environment and in terminal enter
+The easiest way to get `MorphoMetriX` is to install it into the [Anaconda](https://www.anaconda.com/distribution/) Python distribution. In Anaconda create and/or activate your preferred environment and enter into the command line
 
     conda install -c wingtorres morphometrix
 
