@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-#from distutils import setup, find_packages
 
 setup(
     name = "morphometrix",
