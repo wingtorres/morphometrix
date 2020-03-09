@@ -5,10 +5,13 @@
 ## Installation 
 [![Anaconda-Server Badge](https://anaconda.org/wingtorres/morphometrix/badges/version.svg)](https://anaconda.org/wingtorres/morphometrix)
 
-The easiest way to get `MorphoMetriX` is to install it into the [Anaconda](https://www.anaconda.com/distribution/) Python distribution. In Anaconda create and/or activate your preferred environment and enter into the command line
+The easiest way to get `MorphoMetriX` is to install it into the [Anaconda](https://www.anaconda.com/distribution/) Python distribution. It is highly recommend that you create a lightweight environment especially for MorphoMetriX as follows
 
-    conda install -c wingtorres morphometrix
+    conda create --no-default-packages -c conda-forge -c wingtorres -n myenv python morphometrix
 
+where "myenv" is name of the environment, which can be anything you would like. 
+
+__note__: for existing MorphoMetriX users, v1.0.2 contains some crucial bug fixes and UX improvements, so we strongly encourage that you update to v1.0.2 or later. However, some have had difficulty upgrading the MorphoMetrix package in a default Anaconda environment and so we _highly_ recommend just installing it fresh into a new environment following the step above.
 ## Running MorphoMetriX
 After activating and installing into your environment of choice, open the GUI with the command
     
