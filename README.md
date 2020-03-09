@@ -13,7 +13,11 @@ where "myenv" is name of the environment, which can be anything you would like.
 
 __note__: for existing MorphoMetriX users, v1.0.2 contains some crucial bug fixes and UX improvements, so we strongly encourage that you update to v1.0.2 or later. However, some have had difficulty upgrading the MorphoMetrix package in a default Anaconda environment and so we _highly_ recommend just installing it fresh into a new environment following the step above.
 ## Running MorphoMetriX
-After activating and installing into your environment of choice, open the GUI with the command
+After activating "myenv" with
+
+    conda activate myenv
+
+open the GUI with the command
     
     python -m morphometrix
 
