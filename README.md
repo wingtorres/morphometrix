@@ -2,6 +2,12 @@
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.01825/status.svg)](https://doi.org/10.21105/joss.01825)
 [![DOI](https://zenodo.org/badge/202208604.svg)](https://zenodo.org/badge/latestdoi/202208604)
 
+Let MorphoMetriX<sup>1</sup> streamline the often tedious process of making photogrammetric measurements for you, offering a quick intuitive GUI to calculate piecewise/arc lengths and width profiles along segments/curves and areas for polygons. 
+    
+Also check out [CollatriX](https://github.com/cbirdferrer/collatrix)<sup>2</sup>, a GUI to collate multiple MorphoMetriX outputs into a single datafile with add-on functions for correcting altitude error from UAS (drone) flights and calculating animal body condition.
+    
+1. Torres, W.I., and Bierlich, K.C (2020). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
+2. Bird, C.N., and Bierlich, K.C. (2020). CollatriX: A GUI to collate MorphoMetriX outputs. Journal of Open Source Software, 5(51), 2328. doi: 10.21105/joss.02328   
 ## Installation 
 [![Anaconda-Server Badge](https://anaconda.org/wingtorres/morphometrix/badges/version.svg)](https://anaconda.org/wingtorres/morphometrix)
 
@@ -90,7 +96,7 @@ For a demonstration of ``MorphoMetriX`` used to measure a Minke whale, please re
 
 If you make use of this code, you should cite the following paper:
 
-Torres et al., (2019). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
+Torres, W.I., and Bierlich, K.C (2020). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
 
 # Contributing 
 
