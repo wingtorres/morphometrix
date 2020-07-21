@@ -7,7 +7,7 @@ Let MorphoMetriX<sup>1</sup> streamline the often tedious process of making phot
 Also check out [CollatriX](https://github.com/cbirdferrer/collatrix)<sup>2</sup>, a GUI to collate multiple MorphoMetriX outputs into a single datafile with add-on functions for correcting altitude error from UAS (drone) flights and calculating animal body condition.
     
 1. Torres, W.I., and Bierlich, K.C (2020). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
-2. Bird, C.N., and Bierlich, K.C. (2020). CollatriX: A GUI to collate MorphoMetriX outputs. Journal of Open Source Software, 5(51), 2328. doi: 10.21105/joss.02328   
+2. Bird, C.N., and Bierlich, K.C. (2020). CollatriX: A GUI to collate MorphoMetriX outputs. Journal of Open Source Software, 5(51), 2328. https://doi:10.21105/joss.02328   
 ## Installation 
 [![Anaconda-Server Badge](https://anaconda.org/wingtorres/morphometrix/badges/version.svg)](https://anaconda.org/wingtorres/morphometrix)
 
