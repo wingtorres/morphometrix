@@ -11,9 +11,9 @@ Also check out [CollatriX](https://github.com/cbirdferrer/collatrix)<sup>2</sup>
 ## Installation 
 [![Anaconda-Server Badge](https://anaconda.org/wingtorres/morphometrix/badges/version.svg)](https://anaconda.org/wingtorres/morphometrix)
 
-The easiest way to get `MorphoMetriX` is to install it into the [Anaconda](https://www.anaconda.com/distribution/) Python distribution. It is highly recommend that you create a lightweight environment especially for MorphoMetriX as follows
+The easiest way to get `MorphoMetriX` is to install it into the [Miniconda](https://docs.conda.io/en/latest/miniconda.html) Python distribution. It is highly recommend that you create a lightweight environment especially for MorphoMetriX as follows
 
-    conda create --no-default-packages -c conda-forge -c wingtorres -n myenv python morphometrix
+    conda create --no-default-packages -c conda-forge -c wingtorres -n myenv python morphometrix=1.0.2
 
 where "myenv" is name of the environment, which can be anything you would like. 
 
