@@ -549,7 +549,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             return Q.x(), Q.y()
 
         #only delete lines if bezier fit
-        if self.measuring_length and self.parent().bezier.isChecked():
+        if self.measuring_length and self.parent().bezier.isChecked() and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
             self.parent().statusbar.showMessage('Length measurement complete.')
             #Remove most recent items drawn (exact lines)
             nl = self.line_count
@@ -560,8 +560,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         if self._lastpos and self.measuring_length:
             # catmull roms spline instead?
             # https://codeplea.com/introduction-to-splines
-            
-            if self.parent().bezier.isChecked():
+
+            if (self.parent().bezier.isChecked()) and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
+                print("BEZIER")
                 nt = 2000 #max(1000, self.numwidths * 50)  #num of interpolating points
                 # https://gist.github.com/Alquimista/1274149
                 # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
@@ -616,8 +617,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     path.cubicTo(start, mid, end)
                     self.scene.addPath(path)
 
-            if not self.parent().bezier.isChecked():
-
+            if (not self.parent().bezier.isChecked()) or (len(np.vstack((self.L.x, self.L.y)).T) <= 2):
+                print("NO BEZIER")
                 pts = np.array(list(map(qpt2pt, self.L.x, self.L.y)))
                 x, y = pts[:, 0], pts[:, 1]
 
