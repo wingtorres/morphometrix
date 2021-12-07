@@ -17,16 +17,16 @@ def comb(n, k):
 #   -show values as measurements being made
 #   -mouseover xy position
 #   -preferences change in options
-#   -tune bezier curve tension parameter (rational bezier) with scroll wheel 
+#   -tune bezier curve tension parameter (rational bezier) with scroll wheel
 #   -photo saved not working correctly?
-#   -angle lines different color? 
+#   -angle lines different color?
 #   -arrows w/ heads for angle measurement
 #   -arc between angle lines
 #   -object outline: fusiform
 
 # def main(args=None):
 class Manual(QWidget):
-    def __init__(self, parent=None):  
+    def __init__(self, parent=None):
         super(Manual, self).__init__()
         self.manual = QWebEngineView()
         webpage = QtCore.QUrl('https://wingtorres.github.io/morphometrix/')
@@ -37,7 +37,7 @@ class Manual(QWidget):
 
 class Window(QWidget):
 
-    def __init__(self, parent=None):  
+    def __init__(self, parent=None):
         #init methods runs every time, use for core app stuff)
         super(Window, self).__init__()
         #self.setWindowTitle("MorphoMetriX")
@@ -68,7 +68,7 @@ class Window(QWidget):
 
         self.label_not = QLabel("Notes:")
         self.notes = QPlainTextEdit()
-        
+
         # self.manual = QWebEngineView()
         #fpath = os.path.abspath('/Users/WalterTorres/Dropbox/KC_WT/MorphoMetrix/morphometrix/README.html')
         #webpage = QtCore.QUrl.fromLocalFile(fpath)
@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
         self.iw = imwin()
         self.Manual = Manual()
         self.setCentralWidget(self.iw)
-        
+
         #Stacked dock widgets
         docked1 = QDockWidget("", self)
         docked2 = QDockWidget("", self)
@@ -144,11 +144,11 @@ class MainWindow(QMainWindow):
         self.exportButton = QPushButton("Export Measurements", self)
         self.exportButton.clicked.connect(self.export_measurements)
         self.exportButton.setEnabled(False)
-        
+
         self.importImage = QPushButton("New Image", self)
         self.importImage.clicked.connect(self.file_open)
 
-        self.lengthButton = QPushButton("Measure Length", self)  
+        self.lengthButton = QPushButton("Measure Length", self)
         self.lengthButton.clicked.connect(self.measure_length)
         self.lengthButton.setEnabled(False)
         self.lengthButton.setCheckable(True)
@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
         self.angleNames = []
 
         shortcut_polyClose = QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Tab), self)
-        shortcut_polyClose.activated.connect(self.iw.polyClose)     
+        shortcut_polyClose.activated.connect(self.iw.polyClose)
 
         self.undoButton = QPushButton("Undo", self)
         self.undoButton.clicked.connect(self.undo)
@@ -204,7 +204,7 @@ class MainWindow(QMainWindow):
         #self.tb.setOrientation(QtCore.Qt.Vertical)
 
     def file_open(self):
-    
+
         self.iw.scene.clear()
         self.image_name = QFileDialog.getOpenFileName(self, 'Open File')
         self.iw.pixmap = QtGui.QPixmap(self.image_name[0])
@@ -229,11 +229,11 @@ class MainWindow(QMainWindow):
         self.bezier.setEnabled(True)
         self.bezier.setChecked(True)
         self.widthsButton.setEnabled(False)
-        
+
         self.angleNames = []
         self.areaNames = []
         self.lengthNames = []
-        #self.iw.measurements = [[]] 
+        #self.iw.measurements = [[]]
         self.iw.widths = []
         self.iw.lengths = [[]]
         self.iw.L = posData(
@@ -262,7 +262,7 @@ class MainWindow(QMainWindow):
         self.iw.scene.area_ellipseItem = None
         self.iw.scene.polyItem = None
         self.iw.image_name = None
-    
+
     def measure_length(self):
 
         self.lel = QLineEdit(self)
@@ -340,7 +340,7 @@ class MainWindow(QMainWindow):
             self.iw.A.downdate()  #remove data
             self.iw.line_count += -1
             self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
-            self.iw.scene.realline = False                
+            self.iw.scene.realline = False
 
         if self.iw.measuring_widths:
             self.iw.W.downdate()  #remove data
@@ -365,7 +365,7 @@ class MainWindow(QMainWindow):
             self, 'Save File', self.image_name[0].split('.', 1)[0])[0]
         self.pixeldim = float(self.subWin.pixeldim.text())
         self.altitude = float(self.subWin.altitude.text())
-        self.focal = float(self.subWin.focal.text())  
+        self.focal = float(self.subWin.focal.text())
         #okay in mm https://www.imaging-resource.com/PRODS/sony-a5100/sony-a5100DAT.HTM
         if name:
 
@@ -384,7 +384,7 @@ class MainWindow(QMainWindow):
                 'Pixel Dimension'
             ]
             names_widths = ['Object'] +  ['Length (m)'] + ['Widths (%)'] # + self.iw.widthNames[0]
-            #names_widths.append([self.iw.widthNames[0]])	    
+            #names_widths.append([self.iw.widthNames[0]])
 
 	    #Write .csv file
             print(name)
@@ -399,8 +399,8 @@ class MainWindow(QMainWindow):
 
                 for k,m in enumerate(self.lengthNames):
                     #format and convert pixel length measurement
-                    l =  "{0:.2f}".format( self.iw.lengths[k] * fac * self.pixeldim * self.altitude / self.focal ) 
-                    
+                    l =  "{0:.2f}".format( self.iw.lengths[k] * fac * self.pixeldim * self.altitude / self.focal )
+
                     if any(self.iw.widths[k]): #check if width measurement exists for length
                         n = self.iw.widthNames[k]
                         writer.writerow( [''] + [''] + n )
@@ -425,7 +425,7 @@ class MainWindow(QMainWindow):
 
                 for k, f in enumerate(self.areaNames):  #write areas
                     line = [[f] + ["{0:.3f}".format(areas[k])]]  #need to convert NaNs to empty
-                    writer.writerows(line)                   
+                    writer.writerows(line)
 
             #Export image
             self.iw.fitInView(self.iw.scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
@@ -475,11 +475,11 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         if event.key() == QtCore.Qt.Key_Shift:
             pos = QtGui.QCursor.pos()
             self.oldPos = self.mapToScene(self.mapFromGlobal(pos))
-            
+
     def mouseMoveEvent(self, event):
         data = self.mapToScene(event.pos())
         rules = [self.measuring_length, self.measuring_angle, self.measuring_area]
-        
+
         modifiers = QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ShiftModifier and self.oldPos:
             QApplication.setOverrideCursor(QtCore.Qt.PointingHandCursor)
@@ -489,7 +489,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         elif (any(rules) or self.measuring_widths):
             QApplication.setOverrideCursor(QtCore.Qt.CrossCursor)  #change cursor
         else:
-            QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)  #change cursor   
+            QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)  #change cursor
 
         #dragging line
         if self._thispos and any(rules):
@@ -518,13 +518,13 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 if self.scene.area_ellipseItem: #remove existing intersect
                     self.scene.removeItem(self.scene.area_ellipseItem)
                     self.scene.area_ellipseItem = False
-                if self.scene.polyItem:  
-                    self.scene.removeItem(self.scene.polyItem)  
-                    self.scene.polyItem = False                         
-                if intersect:                 
-                    #indicate intersect point    
+                if self.scene.polyItem:
+                    self.scene.removeItem(self.scene.polyItem)
+                    self.scene.polyItem = False
+                if intersect:
+                    #indicate intersect point
                     p = QtCore.QPointF(xi, yi)
-                    self.scene.area_ellipseItem = QGraphicsEllipseItem(0, 0, 10, 10)                        
+                    self.scene.area_ellipseItem = QGraphicsEllipseItem(0, 0, 10, 10)
                     self.scene.area_ellipseItem.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
                     self.scene.area_ellipseItem.setBrush(
                     QtGui.QBrush(QtCore.Qt.blue, style=QtCore.Qt.SolidPattern))
@@ -580,7 +580,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     B = np.array([ bernstein(i,n-1,t) for i in range(0,n) ])
                     xb = np.dot(xp, B)[::-1]
                     yb = np.dot(yp, B)[::-1]
-                    
+
                     #Analytic gradient for bezier curve
                     Qx = n*np.diff(xp)
                     Qy = n*np.diff(yp)
@@ -591,7 +591,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     m = np.vstack((dxb,dyb))
                     m *= (1/np.linalg.norm(m,axis=0))
                     return xb, yb, m
-                
+
                 points = np.vstack((self.L.x, self.L.y)).T
                 self.xs, self.ys, self.m = bezier_rational(points, nt)
 
@@ -599,7 +599,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 x, y = pts[:, 0], pts[:, 1]
 
                 #integrate for length
-                self.l = np.cumsum(np.hypot(np.gradient(x), np.gradient(y))) 
+                self.l = np.cumsum(np.hypot(np.gradient(x), np.gradient(y)))
                 #self.measurements[-1] = self.l[-1]
                 #self.lengths[-1] = self.l[-1]
 
@@ -625,7 +625,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 self.l = np.cumsum(np.hypot(np.diff(x),
                                             np.diff(y)))  #integrate for length
                 #self.measurements[-1] = self.l[-1]
-        
+
+
             self.lengths[-1] = self.l[-1]
             self.lengths.extend([np.nan])
             self.widths.append([])
@@ -635,13 +636,13 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)  #change cursor
         if self.parent().bezier.isChecked():
             self.parent().widthsButton.setEnabled(True)
-            
+
         self.parent().lengthButton.setChecked(False)
         self.parent().angleButton.setChecked(False)
         self.measuring_length = False
         self.measuring_angle = False
         self._thispos = False
-    
+
     def polyClose(self): #make into hot key not button
         if self.measuring_area:
             if self.line_count > 2: #cant make polygon w/ two lines
@@ -651,12 +652,12 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 #draw permanent polygon
                 points = [ QtCore.QPointF(x,y) for x,y in zip( self.A.x, self.A.y ) ]
                 self.scene.polyItem2 = QGraphicsPolygonItem(QtGui.QPolygonF(points))
-                self.scene.polyItem2.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )  
-                if self.scene.polyItem:  
-                    self.scene.removeItem(self.scene.polyItem) #remove mouseover polygon   
-                    self.scene.polyItem = False #remove mouseover polygon 
+                self.scene.polyItem2.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )
+                if self.scene.polyItem:
+                    self.scene.removeItem(self.scene.polyItem) #remove mouseover polygon
+                    self.scene.polyItem = False #remove mouseover polygon
                 self.scene.removeItem(self.scene.testline)
-                self.scene.testline = False 
+                self.scene.testline = False
                 self.scene.addItem(self.scene.polyItem2) #shade in polygon
                 self.parent().statusbar.showMessage('Polygon area measurement completed')
                 self.parent().areaButton.setChecked(False)
@@ -678,14 +679,14 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             np.empty(shape=(0, 0)))  #preallocate custom widths
         #number of possible measurements per segment (length + #widths)
         #self.measurements = np.empty((0, self.iw.nm + 1), int) * np.nan
-        self.numwidths = int(self.parent().subWin.numwidths.text()) 
+        self.numwidths = int(self.parent().subWin.numwidths.text())
         #self.measurements[-1] = np.append( self.l[-1], np.zeros(self.numwidths-1)*np.nan ) #preallocate measurements
         self.widths[-1] = np.empty(self.numwidths-1, dtype='float') #preallocate measurements
         self.widthNames[-1] = [
             '{0:2.2f}% Width'.format(100 * f / self.numwidths)
             for f in np.arange(1, self.numwidths)
         ]
-        
+
         self.nspines = 2 * (self.numwidths - 1)
         self.parent().statusbar.showMessage(
             'Click point along spines to make width measurements perpindicular to the length segment'
@@ -708,7 +709,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
         #Draw Widths
         for k,(x,y) in enumerate(zip(self.xp[1:-1], self.yp[1:-1])):
-            
+
             x1, y1 = x,y
             L = self.pixmap_fit.width()
             H = self.pixmap_fit.height()
@@ -725,9 +726,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     b = np.array([offset[0] - x1, offset[1] - y1])
                     T = np.linalg.solve(A,b)[0]
                     t0 = min(T, t0, key=abs) #find nearest intersection to bounds
-            
+
             #Find 2nd furthest intersection within bounds
-            bounds = np.array( [(L - x1)/vx, (H - y1)/vy, -x1/vx, -y1/vy] ) 
+            bounds = np.array( [(L - x1)/vx, (H - y1)/vy, -x1/vx, -y1/vy] )
             t2 = max(-t0, np.sign(-t0)* np.partition(bounds,-2)[-2], key=abs)
 
             x0 = x1 + t0*vx
@@ -753,8 +754,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
         #draw piecewise lines for non-width measurements
         rules = [self.measuring_length, self.measuring_angle, self.measuring_area]
-        
-        if self.scene.testline and self._thispos and any(rules): 
+
+        if self.scene.testline and self._thispos and any(rules):
             start = self._thispos
             end = QtCore.QPointF(data)
 
@@ -779,18 +780,18 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         #Collect piecewise line start/end points
         self._lastpos = self._thispos  # save old position value
         self._thispos = QtCore.QPointF(data)  # update current position
-        
+
         if self.measuring_length:
             self.L.update(data.x(), data.y())  # update total length
             self.line_count += 1
 
         elif self.measuring_area:
             self.line_count += 1
-            intersect = False 
+            intersect = False
             if self.line_count > 2: #cant make polygon w/ two lines
                 intersect, xi, yi, k = self.A.checkIntersect(data.x(),data.y())
                 self.parent().areaButton.setEnabled(True)
-            if intersect: 
+            if intersect:
                 self.measuring_area = False
                 self.A.update(xi,yi) #update with intersect point
                 self.A.x, self.A.y = self.A.x[k:], self.A.y[k:] #only use points after intersection
@@ -799,9 +800,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 #draw permanent polygon
                 points = [ QtCore.QPointF(x,y) for x,y in zip( self.A.x, self.A.y ) ]
                 self.scene.polyItem2 = QGraphicsPolygonItem(QtGui.QPolygonF(points))
-                self.scene.polyItem2.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )    
-                self.scene.removeItem(self.scene.polyItem) #remove mouseover polygon   
-                self.scene.polyItem = False #remove mouseover polygon  
+                self.scene.polyItem2.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )
+                self.scene.removeItem(self.scene.polyItem) #remove mouseover polygon
+                self.scene.polyItem = False #remove mouseover polygon
                 self.scene.addItem(self.scene.polyItem2) #shade in polygon
                 self.parent().statusbar.showMessage('Polygon area measurement completed')
                 self.parent().areaButton.setChecked(False)
@@ -809,14 +810,14 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)  #change cursor
             else:
                 self.A.update(data.x(),data.y()) #update with click point
-            
+
         #https://stackoverflow.com/questions/30898846/qgraphicsview-items-not-being-placed-where-they-should-be
         if self.measuring_widths:  #measure widths, snap to spines
 
             k = int(self.k / 2) + 1  #same origin for spine on either side
             x0, y0 = self.xp[k], self.yp[k]
             x1, y1 = data.x(), data.y()
-            
+
             #perpindicular slopes
             vx = self.slopes[:,k][1]
             vy = -self.slopes[:,k][0]
@@ -841,7 +842,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 False)  #size stays small, but doesnt translate if false
             self.scene.addItem(self.scene.ellipseItem)
             self.k += 1
-            
+
             if self.k < self.nspines:
                 self.d[str(self.k)].setPen(QtGui.QPen(
                     QtGui.QColor('yellow')))  #Highlight next spine
@@ -904,8 +905,8 @@ class posData():
         self.dx = np.diff(self.x)
         self.dy = np.diff(self.y)
         self.Tu = np.hypot(self.dx,self.dy) + np.finfo(float).eps
-    
-    def checkIntersect(self, xn, yn): 
+
+    def checkIntersect(self, xn, yn):
         vx = np.array([self.x[-1],xn])
         vy = np.array([self.y[-1],yn])
         dvx = np.diff(vx)
@@ -920,7 +921,7 @@ class posData():
                             [dy/Tu, -dvy/Tv]], dtype = 'float' )
             b = np.array( [vx[0] - x, vy[0] - y] )
             try:
-                t = np.linalg.solve(A, b)   
+                t = np.linalg.solve(A, b)
             except np.linalg.LinAlgError as err:
                 if 'Singular matrix' in str(err):
                     t = np.array([0,0])
@@ -932,13 +933,13 @@ class posData():
         return intersect, xi, yi, count
 
     def calcArea(self):
-        A =  0.5*np.abs( np.dot(self.x[:-1],self.y[1:]) + self.x[-1]*self.y[0] 
+        A =  0.5*np.abs( np.dot(self.x[:-1],self.y[1:]) + self.x[-1]*self.y[0]
                         - np.dot(self.y[:-1],self.x[1:]) - self.y[-1]*self.x[0] )
         self.A = A
         return A
-            
+
 class angleData():  #actually need separate class from posdata? probably not
-    
+
     def __init__(self, t):
         self.t = t
 
