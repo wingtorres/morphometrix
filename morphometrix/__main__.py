@@ -1,12 +1,14 @@
-#!/usr/bin/env python
+#!usr/bin/env python
 import os
 import sys
 import csv
 import numpy as np
 from math import factorial
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QHBoxLayout, QVBoxLayout, QToolBar, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QDesktopWidget, QShortcut
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+from PyQt6 import QtGui, QtCore
+from PyQt6.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QHBoxLayout, QVBoxLayout, QToolBar, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy
+from PyQt6.QtGui import QShortcut
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 
 def comb(n, k):
     return factorial(n) / factorial(k) / factorial(n - k)
@@ -97,8 +99,8 @@ class Window(QWidget):
 
     def close_application(self):
         choice = QMessageBox.question(self, 'exit', "Exit program?",
-                                    QMessageBox.Yes | QMessageBox.No)
-        if choice == QMessageBox.Yes:
+                                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if choice == QMessageBox.StandardButton.Yes:
             self.parent().deleteLater()
             self.parent().close()
         else:
@@ -113,12 +115,17 @@ class MainWindow(QMainWindow):
         #super(Window, self).__init__()
         super(MainWindow, self).__init__()
 
-        D = QDesktopWidget()
-        # center = D.availableGeometry().center()
-        self.move(0,0)#center.x() + .25*D.width() , center.y() - .5*D.height() )
-        self.resize(.95*D.width(),.6*D.height())
-        self.setWindowState(self.windowState() & ~QtCore.Qt.WindowMinimized
-                            | QtCore.Qt.WindowActive)
+        #D = QDesktopWidget()
+        #center = self().availableGeometry().center()
+        #self.move(0,0)#center.x() + .25*D.width() , center.y() - .5*D.height() )
+        #self.resize(.95*D.width(),.6*D.height())
+        qr = self.frameGeometry()
+        cp = self.screen().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+		
+        self.setWindowState(self.windowState() & ~QtCore.Qt.WindowState.WindowMinimized
+                            | QtCore.Qt.WindowState.WindowActive)
         self.activateWindow()
 
         self.subWin = Window()
@@ -129,17 +136,17 @@ class MainWindow(QMainWindow):
         #Stacked dock widgets
         docked1 = QDockWidget("", self)
         docked2 = QDockWidget("", self)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, docked1)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, docked2)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, docked1)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, docked2)
         docked1.setWidget(self.subWin)
         docked2.setWidget(self.Manual)
-        docked1.setFeatures(QDockWidget.DockWidgetFloatable)
+        docked1.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 
-        self.setCorner(QtCore.Qt.TopLeftCorner, QtCore.Qt.LeftDockWidgetArea);
-        self.setCorner(QtCore.Qt.TopRightCorner, QtCore.Qt.RightDockWidgetArea)
-        self.setCorner(QtCore.Qt.BottomLeftCorner, QtCore.Qt.LeftDockWidgetArea);
-        self.setCorner(QtCore.Qt.BottomRightCorner, QtCore.Qt.RightDockWidgetArea)
-        self.resizeDocks( (docked1,docked2), (400,400), QtCore.Qt.Horizontal )
+        self.setCorner(QtCore.Qt.Corner.TopLeftCorner, QtCore.Qt.DockWidgetArea.LeftDockWidgetArea);
+        self.setCorner(QtCore.Qt.Corner.TopRightCorner, QtCore.Qt.DockWidgetArea.RightDockWidgetArea)
+        self.setCorner(QtCore.Qt.Corner.BottomLeftCorner, QtCore.Qt.DockWidgetArea.LeftDockWidgetArea);
+        self.setCorner(QtCore.Qt.Corner.BottomRightCorner, QtCore.Qt.DockWidgetArea.RightDockWidgetArea)
+        self.resizeDocks( (docked1,docked2), (400,400), QtCore.Qt.Orientation.Horizontal )
 
         self.exportButton = QPushButton("Export Measurements", self)
         self.exportButton.clicked.connect(self.export_measurements)
@@ -171,7 +178,7 @@ class MainWindow(QMainWindow):
         self.angleButton.setCheckable(True)
         self.angleNames = []
 
-        shortcut_polyClose = QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Tab), self)
+        shortcut_polyClose = QShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_Tab), self)
         shortcut_polyClose.activated.connect(self.iw.polyClose)     
 
         self.undoButton = QPushButton("Undo", self)
@@ -190,7 +197,7 @@ class MainWindow(QMainWindow):
         self.tb = QToolBar('Toolbar')
         #self.addToolBar(QtCore.Qt.RightToolBarArea,self.tb)
         spacer = QWidget(self)
-        spacer.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.tb.addWidget(spacer)
         self.addToolBar(self.tb)
         self.tb.addWidget(self.importImage)
@@ -211,13 +218,13 @@ class MainWindow(QMainWindow):
         self.iw.pixmap_fit = self.iw.pixmap.scaled(
             self.iw.pixmap.width(),
             self.iw.pixmap.height(),
-            QtCore.Qt.KeepAspectRatio,
-            transformMode=QtCore.Qt.SmoothTransformation)
+            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            transformMode=QtCore.Qt.TransformationMode.SmoothTransformation)
         self.iw.scene.addPixmap(self.iw.pixmap_fit)  #add image
         self.iw.setScene(self.iw.scene)
 
         #Adjust window size automatically?
-        self.iw.fitInView(self.iw.scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+        self.iw.fitInView(self.iw.scene.sceneRect(), QtCore.Qt.AspectRatioMode.KeepAspectRatio)
         self.iw.scene.update()
         self.statusbar.showMessage('Select a measurement to make from the toolbar')
 
@@ -272,7 +279,7 @@ class MainWindow(QMainWindow):
         if ok:
             self.lel.setText(str(text))
             self.lengthNames.append(self.lel.text())
-            QApplication.setOverrideCursor(QtCore.Qt.CrossCursor)  #change cursor
+            QApplication.setOverrideCursor(QtCore.Qt.CursorShape.CrossCursor)  #change cursor
             self.widthsButton.setChecked(False)
             self.widthsButton.setEnabled(False)
             self.iw.line_count = 0
@@ -428,7 +435,7 @@ class MainWindow(QMainWindow):
                     writer.writerows(line)                   
 
             #Export image
-            self.iw.fitInView(self.iw.scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+            self.iw.fitInView(self.iw.scene.sceneRect(), QtCore.Qt.AspectRatioMode.KeepAspectRatio)
             pix = QtGui.QPixmap(self.iw.viewport().size())
             self.iw.viewport().render(pix)
             pix.save(name + '-measurements.png')
@@ -461,14 +468,14 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.scene.realline = None
         self.scene.testline = None
         self.setMouseTracking(True)
-        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setRenderHints(QtGui.QPainter.Antialiasing
-                            | QtGui.QPainter.SmoothPixmapTransform)
-        self.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        self.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)
-        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-        self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        #self.setRenderHints(QtGui.QPainter.Antialiasing
+        #                    | QtGui.QPainter.SmoothPixmapTransform)
+        #self.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        #self.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)
+        self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
+        self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setInteractive(False)
 
     def keyPressEvent(self, event):  #shift modifier for panning
@@ -477,19 +484,19 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             self.oldPos = self.mapToScene(self.mapFromGlobal(pos))
             
     def mouseMoveEvent(self, event):
-        data = self.mapToScene(event.pos())
+        data = self.mapToScene(event.position().toPoint())
         rules = [self.measuring_length, self.measuring_angle, self.measuring_area]
         
         modifiers = QApplication.keyboardModifiers()
-        if modifiers == QtCore.Qt.ShiftModifier and self.oldPos:
+        if modifiers == QtCore.Qt.KeyboardModifier.ShiftModifier and self.oldPos:
             QApplication.setOverrideCursor(QtCore.Qt.PointingHandCursor)
             self.newPos = data
             delta = self.newPos - self.oldPos
             self.translate(delta.x(), delta.y())
         elif (any(rules) or self.measuring_widths):
-            QApplication.setOverrideCursor(QtCore.Qt.CrossCursor)  #change cursor
+            QApplication.setOverrideCursor(QtCore.Qt.CursorShape.CrossCursor)  #change cursor
         else:
-            QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)  #change cursor   
+            QApplication.setOverrideCursor(QtCore.Qt.CursorShape.ArrowCursor)  #change cursor   
 
         #dragging line
         if self._thispos and any(rules):
@@ -527,9 +534,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     self.scene.area_ellipseItem = QGraphicsEllipseItem(0, 0, 10, 10)                        
                     self.scene.area_ellipseItem.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
                     self.scene.area_ellipseItem.setBrush(
-                    QtGui.QBrush(QtCore.Qt.blue, style=QtCore.Qt.SolidPattern))
+                    QtGui.QBrush(QtCore.QtColor('blue'))) #, style=QtCore.Qt.BrushStyle.SolidPattern))
                     self.scene.area_ellipseItem.setFlag(
-                    QGraphicsItem.ItemIgnoresTransformations,
+                    QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations,
                     False)  #size stays small, but doesnt translate if set to false
                     self.scene.addItem(self.scene.area_ellipseItem)
                     #shade polygon region
@@ -545,7 +552,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
     def mouseDoubleClickEvent(self, event):
 
         def qpt2pt(x, y):
-            Q = self.mapFromScene(self.mapToScene(x, y))
+            Q = self.mapFromScene(self.mapToScene( int(x), int(y)))
             return Q.x(), Q.y()
 
         #only delete lines if bezier fit
@@ -604,16 +611,14 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
                 #draw cubic line to interpolated points
                 for i in range(1, nt - 1):
-                    start = self.mapFromScene(
-                        self.mapToScene(self.xs[i - 1],
-                                        self.ys[i - 1]))  #+ self.pos()
-                    mid = self.mapFromScene(
-                        self.mapToScene(self.xs[i], self.ys[i]))  #+ self.pos()
-                    end = self.mapFromScene(
-                        self.mapToScene(self.xs[i + 1],
-                                        self.ys[i + 1]))  # + self.pos()
-                    path = QtGui.QPainterPath(start)
-                    path.cubicTo(start, mid, end)
+                    P0 = QtCore.QPointF( self.xs[i-1], self.ys[i-1] )#.toPoint()
+                    P1 = QtCore.QPointF( self.xs[i  ], self.ys[i  ] )#.toPoint()
+                    P2 = QtCore.QPointF( self.xs[i+1], self.ys[i+1] )#.toPoint() 
+                    start = self.mapFromScene(self.mapToScene(P0.toPoint()))
+                    mid = self.mapFromScene(self.mapToScene(P1.toPoint())) 
+                    end = self.mapFromScene(self.mapToScene(P2.toPoint()))
+                    path = QtGui.QPainterPath(P0)
+                    path.cubicTo(P0, P1, P2)
                     self.scene.addPath(path)
 
             if not self.parent().bezier.isChecked():
@@ -631,7 +636,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             self.widthNames.append([])
 
         #self.measurements.extend([np.nan])
-        QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)  #change cursor
+        QApplication.setOverrideCursor(QtCore.Qt.CursorShape.ArrowCursor)  #change cursor
         if self.parent().bezier.isChecked():
             self.parent().widthsButton.setEnabled(True)
             
@@ -666,7 +671,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
     def measure_widths(self):
 
         def qpt2pt(x, y):
-            Q = self.mapFromScene(self.mapToScene(x, y))
+            Q = self.mapFromScene( self.mapToScene( int(x), int(y)) )
             return Q.x(), Q.y()
 
         self.measuring_widths = True
@@ -833,10 +838,11 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             s = 10  #dot size
             self.scene.ellipseItem = QGraphicsEllipseItem(0, 0, s, s)
             self.scene.ellipseItem.setPos(p.x() - s / 2, p.y() - s / 2)
-            self.scene.ellipseItem.setBrush(
-                QtGui.QBrush(QtCore.Qt.red, style=QtCore.Qt.SolidPattern))
+            qb = QtGui.QBrush()
+            qb.setColor(QtGui.QColor('red'))
+            self.scene.ellipseItem.setBrush(qb)
             self.scene.ellipseItem.setFlag(
-                QGraphicsItem.ItemIgnoresTransformations,
+                QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations,
                 False)  #size stays small, but doesnt translate if false
             self.scene.addItem(self.scene.ellipseItem)
             self.k += 1
@@ -866,9 +872,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         zoomInFactor = 1.05
         zoomOutFactor = 1 / zoomInFactor
 
-        self.setTransformationAnchor(QGraphicsView.NoAnchor)
-        self.setResizeAnchor(QGraphicsView.NoAnchor)
-        oldPos = self.mapToScene(event.pos())
+        self.setTransformationAnchor(QGraphicsView.ViewportAnchor.NoAnchor)
+        self.setResizeAnchor(QGraphicsView.ViewportAnchor.NoAnchor)
+        oldPos = self.mapToScene(event.position().toPoint())
 
         #Zoom #https://quick-geek.github.io/answers/885796/index.html
         #y component for mouse with two wheels
@@ -878,7 +884,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             zoomFactor = zoomOutFactor
         self.scale(zoomFactor, zoomFactor)
 
-        newPos = self.mapToScene(event.pos())  #Get the new position
+        newPos = self.mapToScene(event.position().toPoint())  #Get the new position
         delta = newPos - oldPos
         self.translate(delta.x(), delta.y())  #Move scene to old position
 
@@ -952,7 +958,7 @@ def main():
     #GUI = Window()
     main = MainWindow()
     main.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()
