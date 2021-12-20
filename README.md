@@ -2,15 +2,28 @@
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.01825/status.svg)](https://doi.org/10.21105/joss.01825)
 [![DOI](https://zenodo.org/badge/202208604.svg)](https://zenodo.org/badge/latestdoi/202208604)
 
+Let MorphoMetriX<sup>1</sup> streamline the often tedious process of making photogrammetric measurements for you, offering a quick intuitive GUI to calculate piecewise/arc lengths and width profiles along segments/curves and areas for polygons. 
+    
+Also check out [CollatriX](https://github.com/cbirdferrer/collatrix)<sup>2</sup>, a GUI to collate multiple MorphoMetriX outputs into a single datafile with add-on functions for correcting altitude error from UAS (drone) flights and calculating animal body condition.
+    
+1. Torres, W.I., and Bierlich, K.C (2020). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
+2. Bird, C.N., and Bierlich, K.C. (2020). CollatriX: A GUI to collate MorphoMetriX outputs. Journal of Open Source Software, 5(51), 2328. https://doi:10.21105/joss.02328   
 ## Installation 
 [![Anaconda-Server Badge](https://anaconda.org/wingtorres/morphometrix/badges/version.svg)](https://anaconda.org/wingtorres/morphometrix)
 
-The easiest way to get `MorphoMetriX` is to install it into the [Anaconda](https://www.anaconda.com/distribution/) Python distribution. In Anaconda create and/or activate your preferred environment and enter into the command line
+The easiest way to get `MorphoMetriX` is to install it into the [Miniconda](https://docs.conda.io/en/latest/miniconda.html) Python distribution. It is highly recommend that you create a lightweight environment especially for MorphoMetriX as follows
 
-    conda install -c wingtorres morphometrix
+    conda create --no-default-packages -c conda-forge -c wingtorres -n myenv python morphometrix=1.0.2
 
+where "myenv" is name of the environment, which can be anything you would like. 
+
+__note__: for existing MorphoMetriX users, v1.0.2 contains some crucial bug fixes and UX improvements, so we strongly encourage that you update to v1.0.2 or later. However, some have had difficulty upgrading the MorphoMetrix package in a default Anaconda environment and so we _highly_ recommend just installing it fresh into a new environment following the step above.
 ## Running MorphoMetriX
-After activating and installing into your environment of choice, open the GUI with the command
+After activating "myenv" with
+
+    conda activate myenv
+
+open the GUI with the command
     
     python -m morphometrix
 
@@ -83,7 +96,7 @@ For a demonstration of ``MorphoMetriX`` used to measure a Minke whale, please re
 
 If you make use of this code, you should cite the following paper:
 
-Torres et al., (2019). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
+Torres, W.I., and Bierlich, K.C (2020). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
 
 # Contributing 
 
