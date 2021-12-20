@@ -112,17 +112,16 @@ class Window(QWidget):
 class MainWindow(QMainWindow):
 
     def __init__(self, parent = None):
-        #super(Window, self).__init__()
         super(MainWindow, self).__init__()
 
-        #D = QDesktopWidget()
-        #center = self().availableGeometry().center()
-        #self.move(0,0)#center.x() + .25*D.width() , center.y() - .5*D.height() )
-        #self.resize(.95*D.width(),.6*D.height())
-        qr = self.frameGeometry()
-        cp = self.screen().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+        D = self.screen().availableGeometry()
+        self.move(0,0)#center.x() + .25*D.width() , center.y() - .5*D.height() )
+        self.resize( int(.95*D.width()), int(6*D.height()) )
+        
+		#qr = self.frameGeometry()
+        #cp = self.screen().availableGeometry().center()
+        #qr.moveCenter(cp)
+        #self.move(qr.topLeft())
 		
         self.setWindowState(self.windowState() & ~QtCore.Qt.WindowState.WindowMinimized
                             | QtCore.Qt.WindowState.WindowActive)
@@ -479,7 +478,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.setInteractive(False)
 
     def keyPressEvent(self, event):  #shift modifier for panning
-        if event.key() == QtCore.Qt.Key_Shift:
+        if event.key() == QtCore.Qt.Key.Key_Shift:
             pos = QtGui.QCursor.pos()
             self.oldPos = self.mapToScene(self.mapFromGlobal(pos))
             
