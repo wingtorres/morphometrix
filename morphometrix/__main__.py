@@ -1,4 +1,4 @@
-#!usr/bin/env python
+#usr/bin/env python
 import os
 import sys
 import csv
@@ -6,7 +6,7 @@ import numpy as np
 from math import factorial
 
 from PyQt6 import QtGui, QtCore
-from PyQt6.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QHBoxLayout, QVBoxLayout, QToolBar, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy
+from PyQt6.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QHBoxLayout, QVBoxLayout, QToolBar, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
 from PyQt6.QtGui import QShortcut
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
@@ -187,10 +187,13 @@ class MainWindow(QMainWindow):
         shortcut_undo = QShortcut(QtGui.QKeySequence('Ctrl+Z'), self)
         shortcut_undo.activated.connect(self.undo)
 
-        self.bezier = QCheckBox("Bezier fit", self)
-        self.bezier.setEnabled(False)
+        self.bezier = QRadioButton("Bezier fit", self)
+        self.bezier.setEnabled(True)
         self.bezier.setChecked(True)
-
+	#self.bezier.toggled.connect(self.onClicked)
+	
+        self.piecewise = QRadioButton("Piecewise", self)
+	
         self.statusbar = self.statusBar()
         self.statusbar.showMessage('Select new image to begin')
 
@@ -208,6 +211,7 @@ class MainWindow(QMainWindow):
         self.tb.addWidget(self.angleButton)
         self.tb.addWidget(self.undoButton)
         self.tb.addWidget(self.bezier)
+        self.tb.addWidget(self.piecewise)
         #self.tb.setOrientation(QtCore.Qt.Vertical)
 
     def file_open(self):
@@ -394,7 +398,7 @@ class MainWindow(QMainWindow):
             #names_widths.append([self.iw.widthNames[0]])
 
 	    #Write .csv file
-            print(name)
+            print(f"Writing {name} to file")
             with open(name + '.csv', 'w') as csvfile:
                 writer = csv.writer(csvfile)
                 for (f, g) in zip(names_optical, values_optical):
@@ -566,17 +570,19 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
         if self._lastpos and self.measuring_length:
             # catmull roms spline instead?
+            # or rational bezier curve - tuneable approximating/interpolating. ref. wikipedia
             # https://codeplea.com/introduction-to-splines
 
             if (self.parent().bezier.isChecked()) and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
                 nt = 2000 #max(1000, self.numwidths * 50)  #num of interpolating points
-                # https://gist.github.com/Alquimista/1274149
-                # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
+                
                 def bernstein(i, n, t):
                     return comb(n,i) * t**(n-i) * (1-t)**i
 
                 def bezier_rational(points, nt):
-
+                    """Rational Bezier Curve fit"""
+                    # https://gist.github.com/Alquimista/1274149
+                    # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
                     n = len(points)
                     xp = np.array([p[0] for p in points])
                     yp = np.array([p[1] for p in points])
@@ -595,7 +601,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     dyb = np.dot(Qy, Bq)[::-1]
 
                     m = np.vstack((dxb,dyb))
-                    m *= (1/np.linalg.norm(m,axis=0))
+                    m *= (1/np.linalg.norm(m, axis=0))
                     return xb, yb, m
 
                 points = np.vstack((self.L.x, self.L.y)).T
@@ -603,11 +609,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
                 pts = np.array(list(map(qpt2pt, self.xs, self.ys)))
                 x, y = pts[:, 0], pts[:, 1]
-
-                #integrate for length
-                self.l = np.cumsum(np.hypot(np.gradient(x), np.gradient(y)))
-                #self.measurements[-1] = self.l[-1]
-                #self.lengths[-1] = self.l[-1]
+                self.l = np.cumsum(np.hypot(np.gradient(x), np.gradient(y))) #integrate for length
 
                 #draw cubic line to interpolated points
                 for i in range(1, nt - 1):
@@ -622,22 +624,28 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     self.scene.addPath(path)
 
             if (not self.parent().bezier.isChecked()) or (len(np.vstack((self.L.x, self.L.y)).T) <= 2):
+                """Simple linear points if piecewise mode (or only two points used?)"""
                 pts = np.array(list(map(qpt2pt, self.L.x, self.L.y)))
                 x, y = pts[:, 0], pts[:, 1]
-
-                self.l = np.cumsum(np.hypot(np.diff(x),
-                                            np.diff(y)))  #integrate for length
-                #self.measurements[-1] = self.l[-1]
-
-
+                slope = (y[-1] - y[0]) / (x[-1] - x[0])
+                theta = np.arctan(slope)
+                distance = np.hypot( x[-1] - x[0], y[-1] - y[0] )
+                r = np.linspace(0, distance, 1000)
+                
+                self.xs, self.ys = x[0] + r*np.cos(theta), y[0] + r*np.sin(theta)
+                self.m = np.vstack(( slope*(r*0 + 1), -slope*(r*0 + 1) ))
+                #self.m = np.vstack(( (y[-1] - y[0])*(r*0 + 1), (x[-1] - x[0])*(r*0 + 1) ))
+                self.m = np.vstack((  (x[-1] - x[0])*(r*0 + 1), (y[-1] - y[0])*(r*0 + 1) ))
+                self.l = np.cumsum(np.hypot(np.diff(self.xs), np.diff(self.ys)))  #integrate for length
+               
             self.lengths[-1] = self.l[-1]
             self.lengths.extend([np.nan])
             self.widths.append([])
             self.widthNames.append([])
 
-        #self.measurements.extend([np.nan])
         QApplication.setOverrideCursor(QtCore.Qt.CursorShape.ArrowCursor)  #change cursor
-        if self.parent().bezier.isChecked():
+        if self.parent().bezier.isChecked() or (len(np.vstack((self.L.x, self.L.y)).T) <= 2):
+            #measure widths possible if bezier or if single piecewise segment
             self.parent().widthsButton.setEnabled(True)
 
         self.parent().lengthButton.setChecked(False)
@@ -698,14 +706,13 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         #get pts for width drawing
         bins = np.linspace(0, self.l[-1], self.numwidths + 1)
         inds = np.digitize(self.l, bins)
-        __, self.inddec = np.unique(inds, return_index=True)
+        __, self.inddec = np.unique(inds, return_index = True)
 
         pts = np.array(list(map(qpt2pt, self.xs, self.ys)))
         x, y = pts[:, 0], pts[:, 1]
-
         self.xp, self.yp = x[self.inddec], y[self.inddec]
         self.slopes = self.m[:,self.inddec]
-
+        
         #Identify width spine points
         self.xsw = x[inds]
         self.ysw = y[inds]
@@ -849,7 +856,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
             if self.k < self.nspines:
                 self.d[str(self.k)].setPen(QtGui.QPen(
-                    QtGui.QColor('yellow')))  #Highlight next spine
+                    QtGui.QColor('yellow'))) #Highlight next spine
+                    
             if self.k == self.nspines:
                 self.parent().statusbar.showMessage('Width measurements complete')
                 self.measuring_widths = False
@@ -859,8 +867,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 width = np.sqrt(
                     (self.W.x[1::2] - self.W.x[0::2])**2 +
                     (self.W.y[1::2] - self.W.y[0::2])**2)  #calculate widths
-                #self.measurements[-1,1:] = width #update most recent row w/ length measurement
-                #self.measurements[-1][1:] = width
                 self.widths[-1] = width
 
     #MouseWheel Zoom
@@ -876,8 +882,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.NoAnchor)
         oldPos = self.mapToScene(event.position().toPoint())
 
-        #Zoom #https://quick-geek.github.io/answers/885796/index.html
-        #y component for mouse with two wheels
+        #Zoom 
+        # https://quick-geek.github.io/answers/885796/index.html
+        # y-component for mouse with two wheels
         if event.angleDelta().y() > 0:
             zoomFactor = zoomInFactor
         else:
@@ -897,6 +904,7 @@ class posData():
     def update(self, add_x, add_y):
         self.x = np.append(self.x, add_x)
         self.y = np.append(self.y, add_y)
+        
         #below just for area calcs
         self.dx = np.diff(self.x)
         self.dy = np.diff(self.y)
@@ -905,6 +913,7 @@ class posData():
     def downdate(self):
         self.x = self.x[:-1]
         self.y = self.y[:-1]
+
         #below just for area calcs
         self.dx = np.diff(self.x)
         self.dy = np.diff(self.y)
