@@ -493,7 +493,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
         modifiers = QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.KeyboardModifier.ShiftModifier and self.oldPos:
-            QApplication.setOverrideCursor(QtCore.Qt.PointingHandCursor)
+            QApplication.setOverrideCursor(QtCore.Qt.CursorShape.OpenHandCursor)
             self.newPos = data
             delta = self.newPos - self.oldPos
             self.translate(delta.x(), delta.y())
