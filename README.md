@@ -21,7 +21,7 @@ __note__: for existing MorphoMetriX users, v1.0.2 contains some crucial bug fixe
 
 __Apple M1 Users__: the version on GitHub should work with the new M1 chip, but you'll need to follow slightly different install steps. I would first install python using the OS X arm64 [mambaforge](https://github.com/conda-forge/miniforge) distribution. After creating a blank environment, install PyQt6 and numpy using 
     
-    `pip install PyQt6 PyQt6-WebEngine numpy`
+    pip install PyQt6 PyQt6-WebEngine numpy
     
 After which you can open the program with `python -m morphometrix` if you are in the morphometrix directory. You might consider adding the morphometrix location to your $PATH environment variable so you can run it from anywhere.
 
