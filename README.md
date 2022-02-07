@@ -18,6 +18,14 @@ The easiest way to get `MorphoMetriX` is to install it into the [Miniconda](http
 where "myenv" is name of the environment, which can be anything you would like. 
 
 __note__: for existing MorphoMetriX users, v1.0.2 contains some crucial bug fixes and UX improvements, so we strongly encourage that you update to v1.0.2 or later. However, some have had difficulty upgrading the MorphoMetrix package in a default Anaconda environment and so we _highly_ recommend just installing it fresh into a new environment following the step above.
+
+__Apple M1 Users__: the version on GitHub should work with the new M1 chip, but you'll need to follow slightly different install steps. I would first install python using the OS X arm64 [mambaforge](https://github.com/conda-forge/miniforge) distribution. After creating a blank environment, install PyQt6 and numpy using 
+    
+    `pip install PyQt6 PyQt6-WebEngine numpy`
+    
+After which you can open the program with `python -m morphometrix` if you are in the morphometrix directory. You might consider adding the morphometrix location to your $PATH environment variable so you can run it from anywhere.
+
+
 ## Running MorphoMetriX
 After activating "myenv" with
 
