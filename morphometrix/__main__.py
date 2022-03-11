@@ -2,16 +2,16 @@
 import os
 import sys
 import csv
+from itertools import cycle, islice
 import numpy as np
-from math import factorial
+from scipy.linalg import pascal
+from scipy.sparse import diags,spdiags
+from scipy.optimize import root_scalar
 
 from PyQt6 import QtGui, QtCore
 from PyQt6.QtWidgets import QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QHBoxLayout, QVBoxLayout, QToolBar, QPushButton, QCheckBox, QStatusBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
 from PyQt6.QtGui import QShortcut
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-
-def comb(n, k):
-    return factorial(n) / factorial(k) / factorial(n - k)
 
 #To-do list (descending priority)
 #   -combine UI into one window (done)
@@ -26,7 +26,37 @@ def comb(n, k):
 #   -arc between angle lines
 #   -object outline: fusiform
 
-# def main(args=None):
+def bezier(t,P,k,arc = False):
+    """
+    Matrix representation of Bezier curve following
+    https://pomax.github.io/bezierinfo/#arclength
+    """
+    signs = np.array([i for j,i in zip(range(k+1),islice(cycle([1, -1]),0,None))]) #create array alternating 0,1s for diagonals
+    A = pascal(k+1, kind='lower') #generate Pascal triangle matrix
+    S = diags(signs, [i-k for i in range(k+1)][::-1], shape=(k+1, k+1)).toarray() #create signs matrix
+    M = A*S #multiply pascals by signs to get Bernoulli polynomial matrix
+    coeff = A[-1,:]
+    C = M*coeff[:,None] #broadcast
+    T = np.array( [t**i for i in range(k+1)] ).T
+    
+    B = T.dot( C.dot(P) )
+    
+    if arc:
+        return np.linalg.norm(B, axis = 1)
+    else:
+        return B
+
+def gauss_legendre(b, f, P, k, arc, loc = 0.0, L = 1, degree = 24, a = 0):
+    """
+    Gauss-Legendre Quadrature for bezier curve arc length
+    """
+    x, w = np.polynomial.legendre.leggauss(degree)
+    t = 0.5*(b-a)*x + 0.5*(b+a)
+    
+    return 0.5*(b-a)*np.sum( w*bezier(t,P,k,arc) )/L - loc
+
+
+
 class Manual(QWidget):
     def __init__(self, parent=None):
         super(Manual, self).__init__()
@@ -481,6 +511,10 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setInteractive(False)
+    
+    def qpt2pt(self, x, y):
+        Q = self.mapFromScene( self.mapToScene( int(x), int(y)) )
+        return Q.x(), Q.y()
 
     def keyPressEvent(self, event):  #shift modifier for panning
         if event.key() == QtCore.Qt.Key.Key_Shift:
@@ -555,10 +589,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
     def mouseDoubleClickEvent(self, event):
 
-        def qpt2pt(x, y):
-            Q = self.mapFromScene(self.mapToScene( int(x), int(y)))
-            return Q.x(), Q.y()
-
         #only delete lines if bezier fit
         if self.measuring_length and self.parent().bezier.isChecked() and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
             self.parent().statusbar.showMessage('Length measurement complete.')
@@ -574,42 +604,47 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             # https://codeplea.com/introduction-to-splines
 
             if (self.parent().bezier.isChecked()) and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
-                nt = 2000 #max(1000, self.numwidths * 50)  #num of interpolating points
                 
-                def bernstein(i, n, t):
-                    return comb(n,i) * t**(n-i) * (1-t)**i
-
                 def bezier_rational(points, nt):
                     """Rational Bezier Curve fit"""
-                    # https://gist.github.com/Alquimista/1274149
-                    # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
-                    n = len(points)
-                    xp = np.array([p[0] for p in points])
-                    yp = np.array([p[1] for p in points])
-                    t = np.linspace(0.0, 1.0, nt)
+                    # # https://gist.github.com/Alquimista/1274149
+                    # # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
+                    # n = len(points)
+                    # xp = np.array([p[0] for p in points])
+                    # yp = np.array([p[1] for p in points])
+                    # t = np.linspace(0.0, 1.0, nt)
 
-                    #Bezier curve
-                    B = np.array([ bernstein(i,n-1,t) for i in range(0,n) ])
-                    xb = np.dot(xp, B)[::-1]
-                    yb = np.dot(yp, B)[::-1]
+                    # #Bezier curve
+                    # B = np.array([ bernstein(i,n-1,t) for i in range(0,n) ])
+                    # xb = np.dot(xp, B)[::-1]
+                    # yb = np.dot(yp, B)[::-1]
 
-                    #Analytic gradient for bezier curve
-                    Qx = n*np.diff(xp)
-                    Qy = n*np.diff(yp)
-                    Bq = np.array([ bernstein(i,n-2,t) for i in range(0,n-1) ])
-                    dxb = np.dot(Qx, Bq)[::-1]
-                    dyb = np.dot(Qy, Bq)[::-1]
+                    # #Analytic gradient for bezier curve
+                    # Qx = n*np.diff(xp)
+                    # Qy = n*np.diff(yp)
+                    # Bq = np.array([ bernstein(i,n-2,t) for i in range(0,n-1) ])
+                    # dxb = np.dot(Qx, Bq)[::-1]
+                    # dyb = np.dot(Qy, Bq)[::-1]
 
-                    m = np.vstack((dxb,dyb))
-                    m *= (1/np.linalg.norm(m, axis=0))
-                    return xb, yb, m
+                    # m = np.vstack((dxb,dyb))
+                    # m *= (1/np.linalg.norm(m, axis=0))
+                    # return xb, yb, m
 
-                points = np.vstack((self.L.x, self.L.y)).T
-                self.xs, self.ys, self.m = bezier_rational(points, nt)
+                nt = 100 #max(1000, self.numwidths * 50)  #num of interpolating points
+                t = np.linspace(0.0, 1.0, nt)
+                self.P = np.vstack((self.L.x, self.L.y)).T #control points
+                self.kb = len(self.P) - 1 #order of bezier curve # of control points (n) - 1
+                
+                # self.xs, self.ys, self.m = bezier_rational(points, nt)
+                B = bezier(t, self.P, k = self.kb) #evaluate bezier curve along t
+                self.Q = self.kb*np.diff(self.P, axis = 0)
+                self.l = gauss_legendre(b = 1, f = bezier, P = self.Q, k = self.kb - 1, arc = True) #compute total arc length. 
+                self.lengths[-1] = self.l
 
-                pts = np.array(list(map(qpt2pt, self.xs, self.ys)))
-                x, y = pts[:, 0], pts[:, 1]
-                self.l = np.cumsum(np.hypot(np.gradient(x), np.gradient(y))) #integrate for length
+                self.xs, self.ys = B[:,0], B[:,1]
+                pts = np.array(list(map(self.qpt2pt, self.xs, self.ys)))
+                #x, y = pts[:, 0], pts[:, 1]
+                #self.l = np.cumsum(np.hypot(np.gradient(x), np.gradient(y))) #integrate for length
 
                 #draw cubic line to interpolated points
                 for i in range(1, nt - 1):
@@ -625,7 +660,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
             if (not self.parent().bezier.isChecked()) or (len(np.vstack((self.L.x, self.L.y)).T) <= 2):
                 """Simple linear points if piecewise mode (or only two points used?)"""
-                pts = np.array(list(map(qpt2pt, self.L.x, self.L.y)))
+                pts = np.array(list(map(self.qpt2pt, self.L.x, self.L.y)))
                 x, y = pts[:, 0], pts[:, 1]
                 slope = (y[-1] - y[0]) / (x[-1] - x[0])
                 theta = np.arctan(slope)
@@ -637,8 +672,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 #self.m = np.vstack(( (y[-1] - y[0])*(r*0 + 1), (x[-1] - x[0])*(r*0 + 1) ))
                 self.m = np.vstack((  (x[-1] - x[0])*(r*0 + 1), (y[-1] - y[0])*(r*0 + 1) ))
                 self.l = np.cumsum(np.hypot(np.diff(self.xs), np.diff(self.ys)))  #integrate for length
-               
-            self.lengths[-1] = self.l[-1]
+                self.lengths[-1] = self.l[-1]
+
             self.lengths.extend([np.nan])
             self.widths.append([])
             self.widthNames.append([])
@@ -678,80 +713,102 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
     def measure_widths(self):
 
-        def qpt2pt(x, y):
-            Q = self.mapFromScene( self.mapToScene( int(x), int(y)) )
-            return Q.x(), Q.y()
-
         self.measuring_widths = True
         self.parent().widthsButton.setChecked(True)
+        self.numwidths = int(self.parent().subWin.numwidths.text())
         self.k = 0
         self.W = posData(
             np.empty(shape=(0, 0)),
             np.empty(shape=(0, 0)))  #preallocate custom widths
-        #number of possible measurements per segment (length + #widths)
-        #self.measurements = np.empty((0, self.iw.nm + 1), int) * np.nan
-        self.numwidths = int(self.parent().subWin.numwidths.text())
-        #self.measurements[-1] = np.append( self.l[-1], np.zeros(self.numwidths-1)*np.nan ) #preallocate measurements
-        self.widths[-1] = np.empty(self.numwidths-1, dtype='float') #preallocate measurements
+        self.widths[-1] = np.empty(self.numwidths - 1, dtype='float') #preallocate measurements
         self.widthNames[-1] = [
             '{0:2.2f}% Width'.format(100 * f / self.numwidths)
             for f in np.arange(1, self.numwidths)
         ]
-
-        self.nspines = 2 * (self.numwidths - 1)
+        self.nspines = 2 * (self.numwidths) #- 1)
         self.parent().statusbar.showMessage(
             'Click point along spines to make width measurements perpindicular to the length segment'
         )
 
-        #get pts for width drawing
-        bins = np.linspace(0, self.l[-1], self.numwidths + 1)
-        inds = np.digitize(self.l, bins)
-        __, self.inddec = np.unique(inds, return_index = True)
+        # #get pts for width drawing
+        # bins = np.linspace(0, self.l[-1], self.numwidths + 1)
+        # inds = np.digitize(self.l, bins)
+        # __, self.inddec = np.unique(inds, return_index = True)
 
-        pts = np.array(list(map(qpt2pt, self.xs, self.ys)))
-        x, y = pts[:, 0], pts[:, 1]
-        self.xp, self.yp = x[self.inddec], y[self.inddec]
-        self.slopes = self.m[:,self.inddec]
-        
-        #Identify width spine points
-        self.xsw = x[inds]
-        self.ysw = y[inds]
+        # pts = np.array(list(map(qpt2pt, self.xs, self.ys)))
+        # x, y = pts[:, 0], pts[:, 1]
+        # self.xp, self.yp = x[self.inddec], y[self.inddec]
+        # self.slopes = self.m[:,self.inddec]    
+        # #Identify width spine points
 
-        #Draw Widths
-        for k,(x,y) in enumerate(zip(self.xp[1:-1], self.yp[1:-1])):
+        #Bisection method on Gauss-Legendre Quadrature to find equal spaced intervals
+        s_i = np.linspace(0,1,self.numwidths+2)[1:-1] #only need to draw widths for inner pts
+        t_i = np.array([root_scalar(gauss_legendre, x0 = s_i, bracket = [-1,1], method = "bisect", 
+                            args = (bezier, self.Q, self.kb-1, True, s, self.l) ).root for s in s_i])
+        B_i = bezier(np.array(t_i), P = self.P, k = self.kb)
+        self.xp, self.yp = B_i[:,0], B_i[:,1]
 
-            x1, y1 = x,y
+        #Find normal vectors by applying pi/2 rotation matrix to tangent vector
+        bdot = bezier(t_i, P = self.Q, k = self.kb - 1)
+        mag = np.linalg.norm(bdot,axis = 1) #normal vector magnitude
+        bnorm = np.flip(bdot/mag[:,None],axis = 1) 
+        bnorm[:,0] *= -1
+        self.slopes = bnorm
+
+        for k,(pt,m) in enumerate(zip(B_i,bnorm)):
+        #for k,(x,y) in enumerate(zip(self.xp[1:-1], self.yp[1:-1])):
+            x1, y1 = pt[0],pt[1]
+            vx, vy = m[0], m[1]
             L = self.pixmap_fit.width()
             H = self.pixmap_fit.height()
-            v = self.slopes[:,k+1]
-            vx =  v[1]
-            vy = -v[0]
-            t0 = np.hypot(L,H)
-            t2 = 0
+            # t2 = 0
+            # t0 = np.hypot(L,H) #preallocate t0 as diagonal distance
 
-            #intersect: rectangle
-            for offset in ([0,0],[L,H]):
+            # #check intersection w/ bounding rectangle
+            # for offset in ([0,0],[L,H]):
+            #     for ev in ([1,0],[0,1]):
+            #         A = np.matrix([ [vx, ev[0]] , [vy, ev[1]] ])
+            #         b = np.array([offset[0] - x1, offset[1] - y1])
+            #         T = np.linalg.solve(A,b)[0]
+            #         t0 = min(T, t0, key=abs) #find nearest intersection to bounds
+
+            xi,yi = [], []
+            for bound in ([0,0],[L,H]):
                 for ev in ([1,0],[0,1]):
                     A = np.matrix([ [vx, ev[0]] , [vy, ev[1]] ])
-                    b = np.array([offset[0] - x1, offset[1] - y1])
-                    T = np.linalg.solve(A,b)[0]
-                    t0 = min(T, t0, key=abs) #find nearest intersection to bounds
+                    b = np.array([bound[0] - x1, bound[1] - y1])
+                    T = np.linalg.solve(A,b)[0] #only need parametric value for our vector, not bound vector
+                    #t0 = min(T, t0, key=abs) #find nearest intersection to bounds
 
-            #Find 2nd furthest intersection within bounds
-            bounds = np.array( [(L - x1)/vx, (H - y1)/vy, -x1/vx, -y1/vy] )
-            t2 = max(-t0, np.sign(-t0)* np.partition(bounds,-2)[-2], key=abs)
+                    xint = x1 + T*vx
+                    yint = y1 + T*vy
+                    print( f"for line {k}, sol to Ax = B is {T}")
+                    if ( (xint<=L + 1) and (xint>=0-1) and (yint<=H+1) and (yint>=0-1) ): #only add intersect if conditions met. 
+                        #1 pixel fudge factor required?
+                        print("success")
+                        xi.append(xint)
+                        yi.append(yint)
+            #assert False
+            # #Find 2nd furthest intersection within bounds
+            # bounds = np.array( [(L - x1)/vx, (H - y1)/vy, -x1/vx, -y1/vy] )
+            # t2 = max(-t0, np.sign(-t0)* np.partition(bounds,-2)[-2], key=abs)
 
-            x0 = x1 + t0*vx
-            y0 = y1 + t0*vy
-            x2 = x1 + t2*vx
-            y2 = y1 + t2*vy
+            # x0 = x1 + t0*vx
+            # y0 = y1 + t0*vy
+            # x2 = x1 + t2*vx
+            # y2 = y1 + t2*vy
 
-            for l, (x, y) in enumerate(zip([x0, x2], [y0, y2])):
+            # for l, (x, y) in enumerate(zip([x0, x2], [y0, y2])):
+
+            #Draw width lines
+            for l, (x, y) in enumerate(zip(xi,yi)):
+                index = 2 * k + l
+                
                 start = QtCore.QPointF(x1, y1)
                 end = QtCore.QPointF(x, y)
                 self.scene.interpLine = QGraphicsLineItem(
                     QtCore.QLineF(start, end))
-                self.d["{}".format(2 * k + l)] = self.scene.interpLine
+                self.d["{}".format(index)] = self.scene.interpLine
                 self.scene.addItem(self.scene.interpLine)
                 if k == 0 and l == 0:
                     self.scene.interpLine.setPen(
@@ -824,13 +881,14 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         #https://stackoverflow.com/questions/30898846/qgraphicsview-items-not-being-placed-where-they-should-be
         if self.measuring_widths:  #measure widths, snap to spines
 
-            k = int(self.k / 2) + 1  #same origin for spine on either side
+            k = int(self.k / 2) #+ 1  #same origin for spine on either side
             x0, y0 = self.xp[k], self.yp[k]
             x1, y1 = data.x(), data.y()
 
             #perpindicular slopes
-            vx = self.slopes[:,k][1]
-            vy = -self.slopes[:,k][0]
+            # vx = self.slopes[:,k][1]
+            # vy = -self.slopes[:,k][0]
+            vx, vy = self.slopes[k,0], self.slopes[k,1]
 
             A = np.matrix([[vx, -vy], [vy, vx]])
             b = np.array([x1 - x0, y1 - y0])
@@ -854,9 +912,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             self.scene.addItem(self.scene.ellipseItem)
             self.k += 1
 
+            #Highlight width lines
             if self.k < self.nspines:
-                self.d[str(self.k)].setPen(QtGui.QPen(
-                    QtGui.QColor('yellow'))) #Highlight next spine
+                self.d[str(self.k)].setPen(QtGui.QPen(QtGui.QColor('yellow'))) #Highlight next spine
                     
             if self.k == self.nspines:
                 self.parent().statusbar.showMessage('Width measurements complete')
