@@ -8,30 +8,26 @@ Also check out [CollatriX](https://github.com/cbirdferrer/collatrix)<sup>2</sup>
     
 1. Torres, W.I., and Bierlich, K.C (2020). MorphoMetriX: a photogrammetric measurement GUI for morphometric analysis of megafauna.. Journal of Open Source Software, 4(44), 1825. https://doi.org/10.21105/joss.01825
 2. Bird, C.N., and Bierlich, K.C. (2020). CollatriX: A GUI to collate MorphoMetriX outputs. Journal of Open Source Software, 5(51), 2328. https://doi:10.21105/joss.02328   
+
 ## Installation 
-[![Anaconda-Server Badge](https://anaconda.org/wingtorres/morphometrix/badges/version.svg)](https://anaconda.org/wingtorres/morphometrix)
 
-The easiest way to get `MorphoMetriX` is to install it into the [Miniconda](https://docs.conda.io/en/latest/miniconda.html) Python distribution. It is highly recommend that you create a lightweight environment especially for MorphoMetriX as follows
 
-    conda create --no-default-packages -c conda-forge -c wingtorres -n myenv python morphometrix=1.0.2
-
-where "myenv" is name of the environment, which can be anything you would like. 
-
-__note__: for existing MorphoMetriX users, v1.0.2 contains some crucial bug fixes and UX improvements, so we strongly encourage that you update to v1.0.2 or later. However, some have had difficulty upgrading the MorphoMetrix package in a default Anaconda environment and so we _highly_ recommend just installing it fresh into a new environment following the step above.
-
-__Apple M1 Users__: the version on GitHub should work with the new M1 chip, but you'll need to follow slightly different install steps. I would first install python using the OS X arm64 [mambaforge](https://github.com/conda-forge/miniforge) distribution. After creating a blank environment, install PyQt6 and numpy using 
+The best way to use the up-to-date version of `MorphoMetriX` is to download directly from github with
     
-    pip install PyQt6 PyQt6-WebEngine numpy
-    
+    git clone https://github.com/wingtorres/morphometrix.git
+
+You will then need to activate a python environment with the following dependencies installed via pip
+
+    pip install PyQt6 PyQt6-WebEngine numpy scipy
+
 After which you can open the program with `python -m morphometrix` if you are in the morphometrix directory. You might consider adding the morphometrix location to your $PATH environment variable so you can run it from anywhere.
 
+__Note__: a conda package version of Morphometrix exists but is no longer recommended due to install issues and some bugs.
 
+__Apple M1 Users__: the version on GitHub should work with the new M1 chip, but we recommend installing installing python using the OS X arm64 [mambaforge](https://github.com/conda-forge/miniforge) distribution.
+    
 ## Running MorphoMetriX
-After activating "myenv" with
-
-    conda activate myenv
-
-open the GUI with the command
+After activating the appropriate environment, you can open the GUI with the command
     
     python -m morphometrix
 
