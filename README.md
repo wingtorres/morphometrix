@@ -22,7 +22,7 @@ You will then need to activate a python environment with the following dependenc
 
 After which you can open the program with `python -m morphometrix` if you are in the morphometrix directory. You might consider adding the morphometrix location to your $PATH environment variable so you can run it from anywhere.
 
-__Note__: a conda package version of Morphometrix exists but is no longer recommended due to install issues and some bugs.
+__Note__: a conda package version of morphometrix exists but is no longer recommended due to install issues and some bugs.
 
 __Apple M1 Users__: the version on GitHub should work with the new M1 chip, but we recommend installing installing python using the OS X arm64 [mambaforge](https://github.com/conda-forge/miniforge) distribution.
     
