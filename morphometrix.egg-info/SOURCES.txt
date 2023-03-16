@@ -1,0 +1,10 @@
+LICENSE.md
+README.md
+setup.py
+morphometrix/__init__.py
+morphometrix/__main__.py
+morphometrix.egg-info/PKG-INFO
+morphometrix.egg-info/SOURCES.txt
+morphometrix.egg-info/dependency_links.txt
+morphometrix.egg-info/entry_points.txt
+morphometrix.egg-info/top_level.txt
