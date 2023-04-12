@@ -731,7 +731,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
         self.measuring_widths = True
         self.parent().widthsButton.setChecked(True)
-        self.numwidths = int(self.parent().subWin.numwidths.text())
+        self.numwidths = int(self.parent().subWin.numwidths.text())-1
         self.k = 0
         self.W = posData(
             np.empty(shape=(0, 0)),
