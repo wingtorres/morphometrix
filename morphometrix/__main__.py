@@ -1056,9 +1056,15 @@ class MovingEllipse(QGraphicsEllipseItem):
         self.p2 = None
         self.parent = parent            # to update widths measurement
         self.pointAssignment(lp1,lp2)
+        # Find slope of line (y2-y1)/(x2-x1)
         self.m = (self.p2.y()-self.p1.y())/(self.p2.x()-self.p1.x())
-        self.y0 = abs(((self.p1.y() + self.m)-(self.m * self.p1.x()))/self.m)            # Find X intercept
+        # Find X intercept
+        self.y0 = (lp1.y())-(self.m*lp1.x())  # y1-(m*x1) = b
+        self.x0 = (self.y0*-1)/self.m   # -y0/slope
+        #self.y0 = ((self.p1.y() + self.m)-(self.m * self.p1.x()))/self.m           # Find Y intercept
+        print("midpoint: ", self.midPoint)
         print("Y0: ", self.y0)
+        print("m: ", self.m)
 
         self.setPos(self.midPoint)
         #self.setBrush(QtGui.QColor('red'))
@@ -1095,7 +1101,7 @@ class MovingEllipse(QGraphicsEllipseItem):
         #return super().mousePressEvent(event) 
 
     def mouseMoveEvent(self, event):
-        print("Mouse move")
+        #print("Mouse move")
         if self.drag:
             #super().mouseMoveEvent(event)
             orig_curs_pos = event.lastScenePos()
@@ -1107,7 +1113,8 @@ class MovingEllipse(QGraphicsEllipseItem):
 
             # Match X position of Ellipse to slope of line (m = (y1-y0)/(x1-x0))
             # y/m - r = x
-            updated_curs_x = updated_curs_y/self.m + self.y0
+            # Issue when line starting position goes below 0
+            updated_curs_x = updated_curs_y/self.m + self.x0
 
             self.setPos(QtCore.QPointF(updated_curs_x, updated_curs_y))
 
