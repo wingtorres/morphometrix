@@ -1,2 +1,0 @@
-[gui_scripts]
-morphometrix = morphometrix.__main__:main
