@@ -9,8 +9,8 @@ from scipy.sparse import diags
 from scipy.optimize import root_scalar
 
 from PyQt6 import QtGui, QtCore
-from PyQt6.QtWidgets import QGraphicsObject, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
-from PyQt6.QtGui import QShortcut, QPen
+from PyQt6.QtWidgets import QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
+from PyQt6.QtGui import QShortcut, QPen, QFont
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import Qt
 
@@ -98,6 +98,10 @@ class Window(QWidget):
         self.numwidths = QLineEdit()
         self.numwidths.setText('10')
 
+        self.label_side = QLabel("Side Bias:")
+        self.side_bias = QComboBox()
+        self.side_bias.addItems(["Both","Side A", "Side B"])
+
         self.label_not = QLabel("Notes:")
         self.notes = QPlainTextEdit()
 
@@ -121,10 +125,12 @@ class Window(QWidget):
         self.grid.addWidget(self.pixeldim, 4, 1)
         self.grid.addWidget(self.label_widths, 5, 0)
         self.grid.addWidget(self.numwidths, 5, 1)
-        self.grid.addWidget(self.label_not, 6, 0)
-        self.grid.addWidget(self.notes, 6, 1)
+        self.grid.addWidget(self.label_side,6,0)
+        self.grid.addWidget(self.side_bias,6,1)
+        self.grid.addWidget(self.label_not, 7, 0)
+        self.grid.addWidget(self.notes, 7, 1)
         # self.grid.addWidget(self.manual, 8,0,1,4)
-        self.grid.addWidget(self.exit, 7, 3)
+        self.grid.addWidget(self.exit, 8, 3)
         self.setLayout(self.grid)
 
     def close_application(self):
@@ -447,7 +453,8 @@ class MainWindow(QMainWindow):
                 writer.writerow(['Notes', self.subWin.notes.toPlainText(), self.subWin.notes.toPlainText()])     # Notes
 
                 # Initial output in meters, then pixels
-                self.iw.calculate_widths()      # Calculate widths of MovingEllipses at export
+                self.iw.widths.clear() # Clear array for output
+                self.iw.calculate_widths(self.subWin.side_bias.currentText())      # Calculate widths of MovingEllipses at export
                 # Measurements in meters  \/ \/ \/ --------------------------------------------
                 # Make check for first length line
                 if self.lengthNames:
@@ -548,13 +555,29 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
     # Calculates distance in pixels and appends widths[] list
     # Input: None
     # Output: None
-    def calculate_widths(self):
+    def calculate_widths(self,bias):
         for x in range(0,len(self.ellipses)):   # iterate over every group of ellipses
             calculated_widths = []
             for y in range(0,len(self.ellipses[x]),2):  # Iterate over every ellipse in group (might be causing incorrect amount at export issue)
-                width = np.sqrt(
-                        (self.ellipses[x][y].scenePos().x() - self.ellipses[x][y+1].scenePos().x())**2 +
-                        (self.ellipses[x][y].scenePos().y() - self.ellipses[x][y+1].scenePos().y())**2)  #calculate width of entire line
+                print("Bias: ", bias)
+                if bias == 'Both':
+                    width = np.sqrt(
+                            (self.ellipses[x][y].scenePos().x() - self.ellipses[x][y+1].scenePos().x())**2 +
+                            (self.ellipses[x][y].scenePos().y() - self.ellipses[x][y+1].scenePos().y())**2)  #calculate width of entire line
+                elif bias == 'Side A':
+                    # (A point - centerlinePoint) * 2
+                    print("P1x: ",self.ellipses[x][y].scenePos().x())
+                    print("P2x: ",self.ellipses[x][y].cetnerLinePoint.x())
+                    width = np.sqrt(
+                            ((self.ellipses[x][y].scenePos().x() - self.ellipses[x][y].cetnerLinePoint.x())*2)**2 +
+                            ((self.ellipses[x][y].scenePos().y() - self.ellipses[x][y].cetnerLinePoint.y())*2)**2)  #calculate width of entire line
+                else:   # Bias B
+                    # (B point - centerlinePoint) * 2
+                    print("P1x: ",self.ellipses[x][y+1].scenePos().x())
+                    print("P2x: ",self.ellipses[x][y+1].cetnerLinePoint.x())
+                    width = np.sqrt(
+                            ((self.ellipses[x][y+1].scenePos().x() - self.ellipses[x][y+1].cetnerLinePoint.x())*2)**2 +
+                            ((self.ellipses[x][y+1].scenePos().y() - self.ellipses[x][y+1].cetnerLinePoint.y())*2)**2)  #calculate width of entire line
                 calculated_widths.append(width) # Stored widths in temporary array
             self.widths.append(calculated_widths)    # Output is in Pixels
     
@@ -804,6 +827,12 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.slopes = bnorm
         ellipse_group = []
 
+        # For Side Bias Label
+        font = QFont()
+        font.setPointSize(40)
+        font.setWeight(600)
+        font.setPixelSize(int(self.pixmap_fit.width()/30))  # Set text size relative to screen dimensions
+
         for k,(pt,m) in enumerate(zip(B_i,bnorm)):
         #for k,(x,y) in enumerate(zip(self.xp[1:-1], self.yp[1:-1])):
             x1, y1 = pt[0],pt[1]
@@ -853,9 +882,22 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             
             for l, (x, y) in enumerate(zip(xi,yi)):
                 index = 2 * k + l
-                
+
                 start = QtCore.QPointF(x1, y1)
                 end = QtCore.QPointF(x, y)
+
+                # if this is the first itertion
+                if k == 0 and l == 0:
+                    A = QGraphicsTextItem(str("A"))
+                    A.setFont(font)
+                    A.setPos((start+end)/2) # Set to mid-Point
+                    self.scene.addItem(A)
+                if k == 0 and l == 1:
+                    B = QGraphicsTextItem(str("B"))
+                    B.setFont(font)
+                    B.setPos((start+end)/2)
+                    self.scene.addItem(B)
+
                 Ell = MovingEllipse(self, start, end)
                 ellipse_group.append(Ell)
                 self.scene.interpLine = QGraphicsLineItem(
@@ -863,9 +905,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 self.d["{}".format(index)] = self.scene.interpLine
                 self.scene.addItem(self.scene.interpLine)
                 self.scene.addItem(ellipse_group[-1])   # Grab last appended ellipse
-                #if k == 0 and l == 0:
-                #    self.scene.interpLine.setPen(
-                #        QtGui.QPen(QtGui.QColor('yellow')))
+
+                
+
         self.ellipses.append(ellipse_group) # Store width group
 
     def mousePressEvent(self, event):
@@ -1084,9 +1126,13 @@ class posData():
 # Input: Line P1 (QPointF), Line P2 (QPointF)
 class MovingEllipse(QGraphicsEllipseItem):
     def __init__(self, parent,lp1, lp2):
+        # LP2 IS ALWAYS BORDER POINT (PyQt6.QtCore.QPointF(1030.9353133069922, 0.0))
         super(MovingEllipse,self).__init__()
         self.setRect(-10,-10,20,20)
         self.midPoint = (lp1 + lp2)/2    # QPointF
+        self.cetnerLinePoint = lp1
+        print("P1: ", lp1, " P2: ", lp2)
+        
         self.p1 = None
         self.p2 = None
         self.parent = parent            # to update widths measurement
