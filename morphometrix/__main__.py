@@ -98,9 +98,9 @@ class Window(QWidget):
         self.numwidths = QLineEdit()
         self.numwidths.setText('10')
 
-        self.label_side = QLabel("Side Bias:")
+        self.label_side = QLabel("Mirror Side:")
         self.side_bias = QComboBox()
-        self.side_bias.addItems(["Both","Side A", "Side B"])
+        self.side_bias.addItems(["None","Side A", "Side B"])
 
         self.label_not = QLabel("Notes:")
         self.notes = QPlainTextEdit()
@@ -282,7 +282,9 @@ class MainWindow(QMainWindow):
         self.angleNames = []
         self.areaNames = []
         self.lengthNames = []
+        self.widthNames = []
         #self.iw.measurements = [[]]
+        self.iw.ellipses = []
         self.iw.widths = []
         self.iw.lengths = [[]]
         self.iw.L = posData(
@@ -440,7 +442,7 @@ class MainWindow(QMainWindow):
                 'Pixel Dimension'
             ]
 
-	    #Write .csv file
+	        #Write .csv file
             print(f"Writing {name} to file")
             with open(name + '.csv', 'w') as csvfile:
                 writer = csv.writer(csvfile)
@@ -449,7 +451,7 @@ class MainWindow(QMainWindow):
                 # Writes image & flight data
                 for (f, g) in zip(names_optical, values_optical):
                     writer.writerow([f, g, "Metadata"])
-                writer.writerow(['Side Bias', " ", "Metadata"])     # Side Bias (Not implemented yet)
+                writer.writerow(['Side Bias', self.subWin.side_bias.currentText(), "Metadata"])     # Side Bias (Not implemented yet)
                 writer.writerow(['Notes', self.subWin.notes.toPlainText(), self.subWin.notes.toPlainText()])     # Notes
 
                 # Initial output in meters, then pixels
@@ -470,40 +472,40 @@ class MainWindow(QMainWindow):
                                 writer.writerow([self.widthNames[width_index]+"_w"+str(width_percent),l,"Meters"])
                             width_index += 1 # Incease index
 
-                # Write angles
-                for k, f in enumerate(self.angleNames):  #write angles
-                    line = [[f] + ["{0:.3f}".format(self.iw.angleValues[k])]]  #need to convert NaNs to empty
-                    writer.writerows([line, "Degrees"])
+                # Write angles (Fix output)
+                for k, f in enumerate(self.angleNames):
+                    line = "{0:.3f}".format(self.iw.angleValues[k])
+                    writer.writerow([f,line, "Degrees"])
 
-                # Write Area
+                # Write Area ()
                 for k, f in enumerate(self.areaNames):
-                    line = [[f] + ["{0:.3f}".format(areas[k])]]
-                    writer.writerows([line,"Square Meters"])
+                    line = "{0:.3f}".format(areas[k])
+                    writer.writerow([f,line,"Square Meters"])
 
                 # Measurements in pixels \/ \/ \/ --------------------------------------------
                 # Make check for first length line
                 if self.lengthNames:
                     width_index = 0
                     for k,m in enumerate(self.lengthNames):
-                        l = "{0:.2f}".format(self.iw.lengths[k])    # Pixels
+                        l = "{0:.1f}".format(self.iw.lengths[k])    # Pixels
                         writer.writerow([m,l, "Pixels"])  # Writes [Length Name][Length Measurement meters][Length measurement pixels]
                         if width_index < len(self.widthNames) and self.widthNames[width_index] == m: # Check if current length has widths or if width exists
                             # Iterate over width measurements
                             for idx,width in enumerate(self.iw.widths[width_index]):
-                                l = "{0:.2f}".format(width)
-                                width_percent = "{0:.2f}".format(((idx+1)/(len(self.iw.widths[width_index])+1))*100)
+                                l = "{0:.1f}".format(width)
+                                width_percent = "{0:.1f}".format(((idx+1)/(len(self.iw.widths[width_index])+1))*100)
                                 writer.writerow([self.widthNames[width_index]+"_w"+str(width_percent),l,"Pixels"])
                             width_index += 1 # Incease index
 
                 # Write angles
                 for k, f in enumerate(self.angleNames):  #write angles
-                    line = [[f] + ["{0:.3f}".format(self.iw.angleValues[k])]]  #need to convert NaNs to empty
-                    writer.writerows([self.iw.lengths[k],"Degrees"])
+                    line = "{0:.3f}".format(self.iw.angleValues[k])
+                    writer.writerow([f, line,"Degrees"])
 
                 # Write Area
                 for k, f in enumerate(self.areaNames):
-                    line = [[f] + ["{0:.3f}".format(areas[k])]]
-                    writer.writerows([line,"Square Meters"])
+                    line = "{0:.1f}".format(self.iw.areaValues[k])
+                    writer.writerow([f,line,"Pixels"])
 
 
             #Export image
@@ -646,7 +648,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     self.scene.area_ellipseItem = QGraphicsEllipseItem(0, 0, 10, 10)
                     self.scene.area_ellipseItem.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
                     self.scene.area_ellipseItem.setBrush(
-                    QtGui.QBrush(QtCore.QtColor('blue'))) #, style=QtCore.Qt.BrushStyle.SolidPattern))
+                    QtGui.QBrush(QtGui.QColor('blue'))) #, style=QtCore.Qt.BrushStyle.SolidPattern))
                     self.scene.area_ellipseItem.setFlag(
                     QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations,
                     False)  #size stays small, but doesnt translate if set to false
@@ -798,7 +800,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         #self.widths[-1] = np.empty(self.numwidths - 1, dtype='float') #preallocate measurements
         self.nspines = 2 * (self.numwidths) #- 1)
         self.parent().statusbar.showMessage(
-            'Click point along spines to make width measurements perpindicular to the length segment'
+            'Drag width segment points to make width measurements perpendicular to the length segment'
         )
 
         # #get pts for width drawing
@@ -934,6 +936,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 self.T.update(t)
                 self.angleValues = np.append(self.angleValues,t)
                 self.parent().statusbar.showMessage('Angle measurement complete')
+                QApplication.setOverrideCursor(QtCore.Qt.CursorShape.ArrowCursor)  #change cursor
                 self.parent().angleButton.setChecked(False)
                 self.parent().bezier.setEnabled(True)
 
@@ -970,7 +973,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 self.parent().statusbar.showMessage('Polygon area measurement completed')
                 self.parent().areaButton.setChecked(False)
                 self.parent().bezier.setEnabled(True) #make bezier fit available again
-                QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)  #change cursor
+                QApplication.setOverrideCursor(QtCore.Qt.CursorShape.ArrowCursor)  #change cursor
             else:
                 self.A.update(data.x(),data.y()) #update with click point
 
@@ -1099,8 +1102,8 @@ class posData():
         yi = None
         count = None
         for k,(x,y,dx,dy,Tu) in enumerate(zip(self.x[:-1], self.y[:-1], self.dx, self.dy, self.Tu)):
-            A = np.matrix( [[dx/Tu, -dvx/Tv],
-                            [dy/Tu, -dvy/Tv]], dtype = 'float' )
+
+            A = np.matrix([[dx/Tu, -dvx[0]/Tv[0]],[dy/Tu, -dvy[0]/Tv[0]]], dtype=float)
             b = np.array( [vx[0] - x, vy[0] - y] )
             try:
                 t = np.linalg.solve(A, b)
