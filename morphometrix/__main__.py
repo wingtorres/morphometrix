@@ -9,8 +9,8 @@ from scipy.sparse import diags
 from scipy.optimize import root_scalar
 
 from PyQt6 import QtGui, QtCore
-from PyQt6.QtWidgets import QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
-from PyQt6.QtGui import QShortcut, QPen, QFont
+from PyQt6.QtWidgets import QColorDialog ,QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsPixmapItem,QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
+from PyQt6.QtGui import QShortcut, QFont, QPixmap
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import Qt
 
@@ -69,9 +69,10 @@ class Manual(QWidget):
 
 class Window(QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, iw):
         #init methods runs every time, use for core app stuff)
         super(Window, self).__init__()
+        self.iw = iw    # Reference for color picker
         #self.setWindowTitle("MorphoMetriX")
         #self.setGeometry(50, 50, 100, 200)  #x,y,width,height
         #self.setStyleSheet("background-color: rgb(0,0,0)") #change color
@@ -105,6 +106,11 @@ class Window(QWidget):
         self.label_not = QLabel("Notes:")
         self.notes = QPlainTextEdit()
 
+        self.label_color = QLabel("Crosshair Color: ")
+        self.button_color = QPushButton()
+        self.button_color.setStyleSheet("background-color: red")
+        self.button_color.clicked.connect(self.color_changed)
+
         # self.manual = QWebEngineView()
         #fpath = os.path.abspath('/Users/WalterTorres/Dropbox/KC_WT/MorphoMetrix/morphometrix/README.html')
         #webpage = QtCore.QUrl.fromLocalFile(fpath)
@@ -129,9 +135,17 @@ class Window(QWidget):
         self.grid.addWidget(self.side_bias,6,1)
         self.grid.addWidget(self.label_not, 7, 0)
         self.grid.addWidget(self.notes, 7, 1)
+        self.grid.addWidget(self.label_color,8,0)
+        self.grid.addWidget(self.button_color,8,1)
         # self.grid.addWidget(self.manual, 8,0,1,4)
-        self.grid.addWidget(self.exit, 8, 3)
+        self.grid.addWidget(self.exit, 9, 3)
         self.setLayout(self.grid)
+
+    def color_changed(self):
+        color = QColorDialog().getColor()   # Returns QColor
+        self.button_color.setStyleSheet("background-color: "+color.name())
+        self.iw.picked_color = color
+
 
     def close_application(self):
         choice = QMessageBox.question(self, 'exit', "Exit program?",
@@ -163,8 +177,9 @@ class MainWindow(QMainWindow):
                             | QtCore.Qt.WindowState.WindowActive)
         self.activateWindow()
 
-        self.subWin = Window()
+        
         self.iw = imwin()           # Image window
+        self.subWin = Window(self.iw)
         self.Manual = Manual()
         self.setCentralWidget(self.iw)
 
@@ -520,6 +535,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.scene = QGraphicsScene()
         self.view = QGraphicsView(self.scene)
 
+        self.picked_color = QtGui.QColor("red")
         self.pixmap = None
         self._lastpos = None
         self._thispos = None
@@ -562,7 +578,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             calculated_widths = []
             for y in range(0,len(self.ellipses[x]),2):  # Iterate over every ellipse in group (might be causing incorrect amount at export issue)
                 print("Bias: ", bias)
-                if bias == 'Both':
+                if bias == 'None':
                     width = np.sqrt(
                             (self.ellipses[x][y].scenePos().x() - self.ellipses[x][y+1].scenePos().x())**2 +
                             (self.ellipses[x][y].scenePos().y() - self.ellipses[x][y+1].scenePos().y())**2)  #calculate width of entire line
@@ -1127,14 +1143,22 @@ class posData():
 # A grabable Object that allows the user to change width measurements at any moment
 # Ellipse is bound to parent line
 # Input: Line P1 (QPointF), Line P2 (QPointF)
-class MovingEllipse(QGraphicsEllipseItem):
+class MovingEllipse(QGraphicsPixmapItem):
     def __init__(self, parent,lp1, lp2):
         # LP2 IS ALWAYS BORDER POINT (PyQt6.QtCore.QPointF(1030.9353133069922, 0.0))
         super(MovingEllipse,self).__init__()
-        self.setRect(-10,-10,20,20)
+
+        scaledSize = int(parent.scene.height()/30)
+        Image = QPixmap("./crosshair.png").scaled(scaledSize,scaledSize)
+        self.Pixmap = QPixmap(Image.size())
+        self.Pixmap.fill(parent.picked_color)
+        self.Pixmap.setMask(Image.createMaskFromColor(Qt.GlobalColor.transparent))
+        
+        self.setPixmap(self.Pixmap)
+        self.setOffset(QtCore.QPointF(-scaledSize/2,-scaledSize/2)) # Set offset to center of image
+        #self.setRect(-10,-10,20,20)
         self.midPoint = (lp1 + lp2)/2    # QPointF
-        self.cetnerLinePoint = lp1
-        print("P1: ", lp1, " P2: ", lp2)
+        self.cetnerLinePoint = lp1  # Used in 
         
         self.p1 = None
         self.p2 = None
@@ -1145,14 +1169,16 @@ class MovingEllipse(QGraphicsEllipseItem):
         # Find X intercept
         self.y0 = (lp1.y())-(self.m*lp1.x())  # y1-(m*x1) = b
         self.x0 = (self.y0*-1)/self.m   # -y0/slope
-        #self.y0 = ((self.p1.y() + self.m)-(self.m * self.p1.x()))/self.m           # Find Y intercept
-        print("midpoint: ", self.midPoint)
-        print("Y0: ", self.y0)
-        print("m: ", self.m)
-
-        self.setPos(self.midPoint)
-        #self.setBrush(QtGui.QColor('red'))
-        self.setPen(QPen(QtGui.QColor('red'), 3, Qt.PenStyle.SolidLine))
+        #print("midpoint: ", self.midPoint)
+        #print("Y0: ", self.y0)
+        #print("m: ", self.m)
+        
+        # Set distance from linear measurement
+        d = np.sqrt((lp1.x()-lp2.x())**2 + (lp1.y()-lp2.y())**2)
+        t = (scaledSize*3)/d # Ratio of desired distance from center / total length of line
+        
+        
+        self.setPos(QtCore.QPointF(((1-t)*lp1.x()+t*lp2.x()),((1-t)*lp1.y()+t*lp2.y())))
         self.setAcceptHoverEvents(True)
         self.drag = False
 
@@ -1182,7 +1208,7 @@ class MovingEllipse(QGraphicsEllipseItem):
     def mousePressEvent(self, event):
         print("Press")
         self.drag = True
-        #return super().mousePressEvent(event) 
+        #return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         #print("Mouse move")
