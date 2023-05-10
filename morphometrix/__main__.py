@@ -39,9 +39,9 @@ def bezier(t,P,k,arc = False):
     coeff = A[-1,:]
     C = M*coeff[:,None] #broadcast
     T = np.array( [t**i for i in range(k+1)] ).T
-    
+
     B = T.dot( C.dot(P) )
-    
+
     if arc:
         return np.linalg.norm(B, axis = 1)
     else:
@@ -53,7 +53,7 @@ def gauss_legendre(b, f, P, k, arc, loc = 0.0, L = 1, degree = 24, a = 0):
     """
     x, w = np.polynomial.legendre.leggauss(degree)
     t = 0.5*(b-a)*x + 0.5*(b+a)
-    
+
     return 0.5*(b-a)*np.sum( w*bezier(t,P,k,arc) )/L - loc
 
 
@@ -167,17 +167,17 @@ class MainWindow(QMainWindow):
         D = self.screen().availableGeometry()
         self.move(0,0)#center.x() + .25*D.width() , center.y() - .5*D.height() )
         self.resize( int(.95*D.width()), int(6*D.height()) )
-        
+
 		#qr = self.frameGeometry()
         #cp = self.screen().availableGeometry().center()
         #qr.moveCenter(cp)
         #self.move(qr.topLeft())
-		
+
         self.setWindowState(self.windowState() & ~QtCore.Qt.WindowState.WindowMinimized
                             | QtCore.Qt.WindowState.WindowActive)
         self.activateWindow()
 
-        
+
         self.iw = imwin()           # Image window
         self.subWin = Window(self.iw)
         self.Manual = Manual()
@@ -231,12 +231,12 @@ class MainWindow(QMainWindow):
         self.angleNames = []
 
         shortcut_polyClose = QShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_Tab), self)
-        shortcut_polyClose.activated.connect(self.iw.polyClose) 
-        
+        shortcut_polyClose.activated.connect(self.iw.polyClose)
+
         self.undoButton = QPushButton("Undo", self)
         self.undoButton.clicked.connect(self.undo)
         self.undoButton.setEnabled(False)
-        
+
         shortcut_undo = QShortcut(QtGui.QKeySequence('Ctrl+Z'), self)
         shortcut_undo.activated.connect(self.undo)
 
@@ -244,9 +244,9 @@ class MainWindow(QMainWindow):
         self.bezier.setEnabled(True)
         self.bezier.setChecked(True)
 	#self.bezier.toggled.connect(self.onClicked)
-	
+
         self.piecewise = QRadioButton("Piecewise", self)
-	
+
         self.statusbar = self.statusBar()
         self.statusbar.showMessage('Select new image to begin')
 
@@ -451,7 +451,7 @@ class MainWindow(QMainWindow):
                 self.subWin.id.text(), self.image_name[0], self.focal,
                 self.altitude, self.pixeldim
             ])
-            
+
             names_optical = [
                 'Image ID', 'Image Path', 'Focal Length', 'Altitude',
                 'Pixel Dimension'
@@ -598,7 +598,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                             ((self.ellipses[x][y+1].scenePos().y() - self.ellipses[x][y+1].cetnerLinePoint.y())*2)**2)  #calculate width of entire line
                 calculated_widths.append(width) # Stored widths in temporary array
             self.widths.append(calculated_widths)    # Output is in Pixels
-    
+
     def qpt2pt(self, x, y):
         Q = self.mapFromScene( self.mapToScene( int(x), int(y)) )
         return Q.x(), Q.y()
@@ -618,7 +618,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         rules = [self.measuring_length, self.measuring_angle, self.measuring_area]
 
         modifiers = QApplication.keyboardModifiers()
-        if modifiers == QtCore.Qt.KeyboardModifier.ShiftModifier and self.oldPos: 
+        if modifiers == QtCore.Qt.KeyboardModifier.ShiftModifier and self.oldPos:
             QApplication.setOverrideCursor(QtCore.Qt.CursorShape.OpenHandCursor)
             self.newPos = data
             delta = self.newPos - self.oldPos
@@ -697,7 +697,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             # https://codeplea.com/introduction-to-splines
 
             if (self.parent().bezier.isChecked()) and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
-                
+
                 def bezier_rational(points, nt):
                     """Rational Bezier Curve fit"""
                     # # https://gist.github.com/Alquimista/1274149
@@ -727,11 +727,11 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 t = np.linspace(0.0, 1.0, nt)
                 self.P = np.vstack((self.L.x, self.L.y)).T #control points
                 self.kb = len(self.P) - 1 #order of bezier curve # of control points (n) - 1
-                
+
                 # self.xs, self.ys, self.m = bezier_rational(points, nt)
                 B = bezier(t, self.P, k = self.kb) #evaluate bezier curve along t
                 self.Q = self.kb*np.diff(self.P, axis = 0)
-                self.l = gauss_legendre(b = 1, f = bezier, P = self.Q, k = self.kb - 1, arc = True) #compute total arc length. 
+                self.l = gauss_legendre(b = 1, f = bezier, P = self.Q, k = self.kb - 1, arc = True) #compute total arc length.
                 self.lengths[-1] = self.l
 
                 self.xs, self.ys = B[:,0], B[:,1]
@@ -743,9 +743,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 for i in range(1, nt - 1):
                     P0 = QtCore.QPointF( self.xs[i-1], self.ys[i-1] )#.toPoint()
                     P1 = QtCore.QPointF( self.xs[i  ], self.ys[i  ] )#.toPoint()
-                    P2 = QtCore.QPointF( self.xs[i+1], self.ys[i+1] )#.toPoint() 
+                    P2 = QtCore.QPointF( self.xs[i+1], self.ys[i+1] )#.toPoint()
                     start = self.mapFromScene(self.mapToScene(P0.toPoint()))
-                    mid = self.mapFromScene(self.mapToScene(P1.toPoint())) 
+                    mid = self.mapFromScene(self.mapToScene(P1.toPoint()))
                     end = self.mapFromScene(self.mapToScene(P2.toPoint()))
                     path = QtGui.QPainterPath(P0)
                     path.cubicTo(P0, P1, P2)
@@ -759,7 +759,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 theta = np.arctan(slope)
                 distance = np.hypot( x[-1] - x[0], y[-1] - y[0] )
                 r = np.linspace(0, distance, 1000)
-                
+
                 self.xs, self.ys = x[0] + r*np.cos(theta), y[0] + r*np.sin(theta)
                 self.m = np.vstack(( slope*(r*0 + 1), -slope*(r*0 + 1) ))
                 #self.m = np.vstack(( (y[-1] - y[0])*(r*0 + 1), (x[-1] - x[0])*(r*0 + 1) ))
@@ -827,12 +827,12 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         # pts = np.array(list(map(qpt2pt, self.xs, self.ys)))
         # x, y = pts[:, 0], pts[:, 1]
         # self.xp, self.yp = x[self.inddec], y[self.inddec]
-        # self.slopes = self.m[:,self.inddec]    
+        # self.slopes = self.m[:,self.inddec]
         # #Identify width spine points
 
         #Bisection method on Gauss-Legendre Quadrature to find equal spaced intervals
         s_i = np.linspace(0,1,self.numwidths+2)[1:-1] #only need to draw widths for inner pts
-        t_i = np.array([root_scalar(gauss_legendre, x0 = s_i, bracket = [-1,1], method = "bisect", 
+        t_i = np.array([root_scalar(gauss_legendre, x0 = s_i, bracket = [-1,1], method = "bisect",
                             args = (bezier, self.Q, self.kb-1, True, s, self.l) ).root for s in s_i])
         B_i = bezier(np.array(t_i), P = self.P, k = self.kb)
         self.xp, self.yp = B_i[:,0], B_i[:,1]
@@ -840,7 +840,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         #Find normal vectors by applying pi/2 rotation matrix to tangent vector
         bdot = bezier(t_i, P = self.Q, k = self.kb - 1)
         mag = np.linalg.norm(bdot,axis = 1) #normal vector magnitude
-        bnorm = np.flip(bdot/mag[:,None],axis = 1) 
+        bnorm = np.flip(bdot/mag[:,None],axis = 1)
         bnorm[:,0] *= -1
         self.slopes = bnorm
         ellipse_group = []
@@ -879,7 +879,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     xint = x1 + T*vx
                     yint = y1 + T*vy
                     print( f"for line {k}, sol to Ax = B is {T}")
-                    if ( (xint<=L + 1) and (xint>=0-1) and (yint<=H+1) and (yint>=0-1) ): #only add intersect if conditions met. 
+                    if ( (xint<=L + 1) and (xint>=0-1) and (yint<=H+1) and (yint>=0-1) ): #only add intersect if conditions met.
                         #1 pixel fudge factor required?
                         print("success")
                         xi.append(xint)
@@ -897,7 +897,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             # for l, (x, y) in enumerate(zip([x0, x2], [y0, y2])):
 
             # Draw width lines (And draw starting points)
-            
+
             for l, (x, y) in enumerate(zip(xi,yi)):
                 index = 2 * k + l
 
@@ -924,7 +924,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 self.scene.addItem(self.scene.interpLine)
                 self.scene.addItem(ellipse_group[-1])   # Grab last appended ellipse
 
-                
+
 
         self.ellipses.append(ellipse_group) # Store width group
 
@@ -1030,8 +1030,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             #Highlight width lines
             #if self.k < self.nspines:
             #    self.d[str(self.k)].setPen(QtGui.QPen(QtGui.QColor('yellow'))) #Highlight next spine
-                    
-            # When all width measurements are inputted        
+
+            # When all width measurements are inputted
             #if self.k == self.nspines:
             #    self.parent().statusbar.showMessage('Width measurements complete')
             #    self.measuring_widths = False
@@ -1047,16 +1047,16 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.parent().widthsButton.setEnabled(False)
         self.parent().widthsButton.setChecked(False)
         super().mousePressEvent(event)
-    
+
     def hoverEnterEvent(self, event):
         super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
         super().hoverLeaveEvent(event)
-    
+
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
-        
+
     #MouseWheel Zoom
     def wheelEvent(self, event):
         #https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
@@ -1070,7 +1070,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.NoAnchor)
         oldPos = self.mapToScene(event.position().toPoint())
 
-        #Zoom 
+        #Zoom
         # https://quick-geek.github.io/answers/885796/index.html
         # y-component for mouse with two wheels
         if event.angleDelta().y() > 0:
@@ -1092,7 +1092,7 @@ class posData():
     def update(self, add_x, add_y):
         self.x = np.append(self.x, add_x)
         self.y = np.append(self.y, add_y)
-        
+
         #below just for area calcs
         self.dx = np.diff(self.x)
         self.dy = np.diff(self.y)
@@ -1139,6 +1139,16 @@ class posData():
         self.A = A
         return A
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 # Class for width measurement eclipses
 # A grabable Object that allows the user to change width measurements at any moment
 # Ellipse is bound to parent line
@@ -1149,17 +1159,17 @@ class MovingEllipse(QGraphicsPixmapItem):
         super(MovingEllipse,self).__init__()
 
         scaledSize = int(parent.scene.height()/30)
-        Image = QPixmap("./crosshair.png").scaled(scaledSize,scaledSize)
+        Image = QPixmap(resource_path("crosshair.png")).scaled(scaledSize,scaledSize)
         self.Pixmap = QPixmap(Image.size())
         self.Pixmap.fill(parent.picked_color)
         self.Pixmap.setMask(Image.createMaskFromColor(Qt.GlobalColor.transparent))
-        
+
         self.setPixmap(self.Pixmap)
         self.setOffset(QtCore.QPointF(-scaledSize/2,-scaledSize/2)) # Set offset to center of image
         #self.setRect(-10,-10,20,20)
         self.midPoint = (lp1 + lp2)/2    # QPointF
-        self.cetnerLinePoint = lp1  # Used in 
-        
+        self.cetnerLinePoint = lp1  # Used in
+
         self.p1 = None
         self.p2 = None
         self.parent = parent            # to update widths measurement
@@ -1172,12 +1182,12 @@ class MovingEllipse(QGraphicsPixmapItem):
         #print("midpoint: ", self.midPoint)
         #print("Y0: ", self.y0)
         #print("m: ", self.m)
-        
+
         # Set distance from linear measurement
         d = np.sqrt((lp1.x()-lp2.x())**2 + (lp1.y()-lp2.y())**2)
         t = (scaledSize*3)/d # Ratio of desired distance from center / total length of line
-        
-        
+
+
         self.setPos(QtCore.QPointF(((1-t)*lp1.x()+t*lp2.x()),((1-t)*lp1.y()+t*lp2.y())))
         self.setAcceptHoverEvents(True)
         self.drag = False
@@ -1217,7 +1227,7 @@ class MovingEllipse(QGraphicsPixmapItem):
             orig_curs_pos = event.lastScenePos()
             updated_curs_pos = event.scenePos()
             orig_pos = self.scenePos()
-            
+
             # Update Y position of Ellipse to match mouse
             updated_curs_y = updated_curs_pos.y() - orig_curs_pos.y() + orig_pos.y()
 

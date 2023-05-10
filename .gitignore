@@ -5,3 +5,19 @@ demo/test.csv
 .vscode/settings.json
 demo/mmx_output format notes_230317.xlsx
 .vscode/settings.json
+morphometrix/build/__main__/xref-__main__.html
+morphometrix/dist/__main__.exe
+morphometrix/build/__main__/warn-__main__.txt
+morphometrix/build/__main__/PYZ-00.toc
+morphometrix/build/__main__/PYZ-00.pyz
+morphometrix/build/__main__/PKG-00.toc
+morphometrix/build/__main__/localpycs/struct.pyc
+morphometrix/build/__main__/localpycs/pyimod04_pywin32.pyc
+morphometrix/build/__main__/localpycs/pyimod03_ctypes.pyc
+morphometrix/build/__main__/localpycs/pyimod02_importers.pyc
+morphometrix/build/__main__/localpycs/pyimod01_archive.pyc
+morphometrix/build/__main__/EXE-00.toc
+morphometrix/build/__main__/base_library.zip
+morphometrix/build/__main__/Analysis-00.toc
+morphometrix/build/__main__/__main__.pkg
+morphometrix/build/__main__/__main__.exe.manifest
