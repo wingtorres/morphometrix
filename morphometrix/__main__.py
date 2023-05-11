@@ -466,7 +466,7 @@ class MainWindow(QMainWindow):
                 # Writes image & flight data
                 for (f, g) in zip(names_optical, values_optical):
                     writer.writerow([f, g, "Metadata"])
-                writer.writerow(['Side Bias', self.subWin.side_bias.currentText(), "Metadata"])     # Side Bias (Not implemented yet)
+                writer.writerow(['Mirror Side', self.subWin.side_bias.currentText(), "Metadata"])     # Side Bias (Not implemented yet)
                 writer.writerow(['Notes', self.subWin.notes.toPlainText(), self.subWin.notes.toPlainText()])     # Notes
 
                 # Initial output in meters, then pixels
@@ -1145,7 +1145,7 @@ def resource_path(relative_path):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".")
+        base_path = os.path.dirname(__file__)
 
     return os.path.join(base_path, relative_path)
 
