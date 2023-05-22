@@ -467,7 +467,7 @@ class MainWindow(QMainWindow):
                 for (f, g) in zip(names_optical, values_optical):
                     writer.writerow([f, g, "Metadata"])
                 writer.writerow(['Mirror Side', self.subWin.side_bias.currentText(), "Metadata"])     # Side Bias (Not implemented yet)
-                writer.writerow(['Notes', self.subWin.notes.toPlainText(), self.subWin.notes.toPlainText()])     # Notes
+                writer.writerow(['Notes', self.subWin.notes.toPlainText(), "Metadata"])     # Notes
 
                 # Initial output in meters, then pixels
                 self.iw.widths.clear() # Clear array for output

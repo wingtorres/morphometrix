@@ -21,3 +21,11 @@ morphometrix/build/__main__/base_library.zip
 morphometrix/build/__main__/Analysis-00.toc
 morphometrix/build/__main__/__main__.pkg
 morphometrix/build/__main__/__main__.exe.manifest
+morphometrix/dist/ __main__.dmg
+morphometrix/dist/__main__
+morphometrix/dist/__main__.app/Contents/_CodeSignature/CodeResources
+morphometrix/dist/__main__.app/Contents/Info.plist
+morphometrix/dist/__main__.app/Contents/MacOS/__main__
+morphometrix/dist/__main__.app/Contents/Resources/icon-windowed.icns
+__main__.spec
+morphometrix/__main__.spec
