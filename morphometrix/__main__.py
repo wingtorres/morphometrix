@@ -4,6 +4,7 @@ import sys
 import csv
 from itertools import cycle, islice
 import numpy as np
+import webbrowser
 from scipy.linalg import pascal
 from scipy.sparse import diags
 from scipy.optimize import root_scalar
@@ -11,7 +12,7 @@ from scipy.optimize import root_scalar
 from PyQt6 import QtGui, QtCore
 from PyQt6.QtWidgets import QColorDialog ,QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsPixmapItem,QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
 from PyQt6.QtGui import QShortcut, QFont, QPixmap
-from PyQt6.QtWebEngineWidgets import QWebEngineView
+#from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import Qt
 
 #To-do list (descending priority)
@@ -60,12 +61,12 @@ def gauss_legendre(b, f, P, k, arc, loc = 0.0, L = 1, degree = 24, a = 0):
 class Manual(QWidget):
     def __init__(self, parent=None):
         super(Manual, self).__init__()
-        self.manual = QWebEngineView()
-        webpage = QtCore.QUrl('https://wingtorres.github.io/morphometrix/')
-        self.manual.setUrl(webpage)
-        self.grid = QGridLayout()
-        self.grid.addWidget(self.manual,1,0)
-        self.setLayout(self.grid)
+        #self.manual = QWebEngineView()
+        #webpage = QtCore.QUrl('https://wingtorres.github.io/morphometrix/')
+        #self.manual.setUrl(webpage)
+        #self.grid = QGridLayout()
+        #self.grid.addWidget(self.manual,1,0)
+        #self.setLayout(self.grid)
 
 class Window(QWidget):
 
@@ -117,6 +118,9 @@ class Window(QWidget):
         # webpage = QtCore.QUrl('https://wingtorres.github.io/morphometrix/')
         # self.manual.setUrl(webpage)
 
+        self.manual = QPushButton("Manual", self)
+        self.manual.clicked.connect(lambda: webbrowser.open('https://github.com/wingtorres/morphometrix'))
+
         self.exit = QPushButton("Exit", self)
         self.exit.clicked.connect(self.close_application)
 
@@ -138,7 +142,8 @@ class Window(QWidget):
         self.grid.addWidget(self.label_color,8,0)
         self.grid.addWidget(self.button_color,8,1)
         # self.grid.addWidget(self.manual, 8,0,1,4)
-        self.grid.addWidget(self.exit, 9, 3)
+        self.grid.addWidget(self.manual, 9, 3)
+        self.grid.addWidget(self.exit, 10, 3)
         self.setLayout(self.grid)
 
     def color_changed(self):

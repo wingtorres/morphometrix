@@ -28,7 +28,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='__main__',
+    name='morphometrix',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
