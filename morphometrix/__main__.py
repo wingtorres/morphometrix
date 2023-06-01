@@ -2,6 +2,9 @@
 import os
 import sys
 import csv
+import traceback
+import platform
+from datetime import date
 from itertools import cycle, islice
 import numpy as np
 import webbrowser
@@ -27,6 +30,7 @@ from PyQt6.QtCore import Qt
 #   -arrows w/ heads for angle measurement
 #   -arc between angle lines
 #   -object outline: fusiform
+
 
 def bezier(t,P,k,arc = False):
     """
@@ -482,7 +486,7 @@ class MainWindow(QMainWindow):
                 if self.lengthNames:
                     width_index = 0
                     for k,m in enumerate(self.lengthNames):
-                        l = "{0:.2f}".format(self.iw.lengths[k] * fac * self.pixeldim * self.altitude / self.focal)
+                        l = "{0:.2f}".format(self.iw.lengths[k+12] * fac * self.pixeldim * self.altitude / self.focal)
                         writer.writerow([m,l, "Meters"])  # Writes [Length Name][Length Measurement meters][Length measurement pixels]
                         if width_index < len(self.widthNames) and self.widthNames[width_index] == m: # Check if current length has widths or if width exists
                             # Iterate over width measurements
@@ -1260,12 +1264,43 @@ class angleData():  #actually need separate class from posdata? probably not
     def downdate(self):
         self.t = self.t[:-1]
 
+
+# Main window hook for crash logging
+def except_hook(exc_type, exc_value, exc_tb):
+    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    dialog = QMessageBox()
+    dialog.setIcon(QMessageBox.Icon.Critical)
+    dialog.setWindowTitle("Error")
+    dialog.setText("Error: Crash caught, see details for more.")
+    dialog.setDetailedText(tb)
+    dialog.setStandardButtons(QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel)
+    ret = dialog.exec()   # show box
+    if ret == QMessageBox.StandardButton.Save:
+        path = QFileDialog().getExistingDirectory(dialog,'Select a directory')
+        if(path):
+            path += '/' + str(date.today()) + "_Morphometrix_Crashlog" + ".txt"
+            print("saving: ", path)
+            with open(path, 'w') as file:
+                file.write("System: " + platform.system() + '\n')
+                file.write("Node: " + platform.node() + '\n')
+                file.write("Release: " + platform.release() + '\n')
+                file.write("Version: " + platform.version() + '\n')
+                file.write("Machine: " + platform.machine() + '\n')
+                file.write("Processor: " + platform.processor() + '\n' + '\n')
+                file.write(tb)
+
+    #print("Error caught:\n",tb)
+    QApplication.quit() # Quit application
+
 def main():
+    sys.excepthook = except_hook
     app = QApplication(sys.argv)
     #GUI = Window()
     main = MainWindow()
     main.show()
-    sys.exit(app.exec())
+    app.exec()
+    sys.exit()
+   
 
 if __name__ == "__main__":
     main()
