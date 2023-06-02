@@ -513,7 +513,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.setMouseTracking(True)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-       
+
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
 
@@ -1131,7 +1131,7 @@ def main():
     main.show()
     app.exec()
     sys.exit()
-   
+
 
 if __name__ == "__main__":
     main()
