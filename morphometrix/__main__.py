@@ -15,22 +15,12 @@ from scipy.optimize import root_scalar
 from PyQt6 import QtGui, QtCore
 from PyQt6.QtWidgets import QColorDialog ,QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsPixmapItem,QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
 from PyQt6.QtGui import QShortcut, QFont, QPixmap
-#from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import Qt
 
-#To-do list (descending priority)
-#   -combine UI into one window (done)
-#   -scale bar
-#   -show values as measurements being made
-#   -mouseover xy position
-#   -preferences change in options
-#   -tune bezier curve tension parameter (rational bezier) with scroll wheel
-#   -photo saved not working correctly?
-#   -angle lines different color?
-#   -arrows w/ heads for angle measurement
-#   -arc between angle lines
-#   -object outline: fusiform
-
+# ------------------------------
+#   Future developer credits
+#
+# ------------------------------
 
 def bezier(t,P,k,arc = False):
     """
@@ -62,26 +52,12 @@ def gauss_legendre(b, f, P, k, arc, loc = 0.0, L = 1, degree = 24, a = 0):
     return 0.5*(b-a)*np.sum( w*bezier(t,P,k,arc) )/L - loc
 
 
-class Manual(QWidget):
-    def __init__(self, parent=None):
-        super(Manual, self).__init__()
-        #self.manual = QWebEngineView()
-        #webpage = QtCore.QUrl('https://wingtorres.github.io/morphometrix/')
-        #self.manual.setUrl(webpage)
-        #self.grid = QGridLayout()
-        #self.grid.addWidget(self.manual,1,0)
-        #self.setLayout(self.grid)
-
 class Window(QWidget):
 
     def __init__(self, iw):
         #init methods runs every time, use for core app stuff)
         super(Window, self).__init__()
         self.iw = iw    # Reference for color picker
-        #self.setWindowTitle("MorphoMetriX")
-        #self.setGeometry(50, 50, 100, 200)  #x,y,width,height
-        #self.setStyleSheet("background-color: rgb(0,0,0)") #change color
-        #self.setStyleSheet("font-color: rgb(0,0,0)") #change color
 
         self.label_id = QLabel("Image ID")
         self.id = QLineEdit()
@@ -116,12 +92,6 @@ class Window(QWidget):
         self.button_color.setStyleSheet("background-color: red")
         self.button_color.clicked.connect(self.color_changed)
 
-        # self.manual = QWebEngineView()
-        #fpath = os.path.abspath('/Users/WalterTorres/Dropbox/KC_WT/MorphoMetrix/morphometrix/README.html')
-        #webpage = QtCore.QUrl.fromLocalFile(fpath)
-        # webpage = QtCore.QUrl('https://wingtorres.github.io/morphometrix/')
-        # self.manual.setUrl(webpage)
-
         self.manual = QPushButton("Manual", self)
         self.manual.clicked.connect(lambda: webbrowser.open('https://github.com/wingtorres/morphometrix'))
 
@@ -145,7 +115,6 @@ class Window(QWidget):
         self.grid.addWidget(self.notes, 7, 1)
         self.grid.addWidget(self.label_color,8,0)
         self.grid.addWidget(self.button_color,8,1)
-        # self.grid.addWidget(self.manual, 8,0,1,4)
         self.grid.addWidget(self.manual, 9, 3)
         self.grid.addWidget(self.exit, 10, 3)
         self.setLayout(self.grid)
@@ -177,11 +146,6 @@ class MainWindow(QMainWindow):
         self.move(0,0)#center.x() + .25*D.width() , center.y() - .5*D.height() )
         self.resize( int(.95*D.width()), int(6*D.height()) )
 
-		#qr = self.frameGeometry()
-        #cp = self.screen().availableGeometry().center()
-        #qr.moveCenter(cp)
-        #self.move(qr.topLeft())
-
         self.setWindowState(self.windowState() & ~QtCore.Qt.WindowState.WindowMinimized
                             | QtCore.Qt.WindowState.WindowActive)
         self.activateWindow()
@@ -189,7 +153,6 @@ class MainWindow(QMainWindow):
 
         self.iw = imwin()           # Image window
         self.subWin = Window(self.iw)
-        self.Manual = Manual()
         self.setCentralWidget(self.iw)
 
         #Stacked dock widgets
@@ -198,7 +161,6 @@ class MainWindow(QMainWindow):
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, docked1)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, docked2)
         docked1.setWidget(self.subWin)
-        docked2.setWidget(self.Manual)
         docked1.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 
         self.setCorner(QtCore.Qt.Corner.TopLeftCorner, QtCore.Qt.DockWidgetArea.LeftDockWidgetArea);
@@ -221,7 +183,6 @@ class MainWindow(QMainWindow):
         self.lengthNames = []
 
         self.widthsButton = QPushButton("Measure Widths", self)
-        #self.widthsButton.clicked.connect(self.iw.measure_widths)
         self.widthsButton.clicked.connect(self.measure_widths)
         self.widthsButton.setEnabled(False)
         self.widthsButton.setCheckable(True)
@@ -252,7 +213,6 @@ class MainWindow(QMainWindow):
         self.bezier = QRadioButton("Bezier fit", self)
         self.bezier.setEnabled(True)
         self.bezier.setChecked(True)
-	#self.bezier.toggled.connect(self.onClicked)
 
         self.piecewise = QRadioButton("Piecewise", self)
 
@@ -260,7 +220,6 @@ class MainWindow(QMainWindow):
         self.statusbar.showMessage('Select new image to begin')
 
         self.tb = QToolBar('Toolbar')
-        #self.addToolBar(QtCore.Qt.RightToolBarArea,self.tb)
         spacer = QWidget(self)
         spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.tb.addWidget(spacer)
@@ -274,7 +233,6 @@ class MainWindow(QMainWindow):
         self.tb.addWidget(self.undoButton)
         self.tb.addWidget(self.bezier)
         self.tb.addWidget(self.piecewise)
-        #self.tb.setOrientation(QtCore.Qt.Vertical)
 
     def file_open(self):
 
@@ -307,7 +265,6 @@ class MainWindow(QMainWindow):
         self.areaNames = []
         self.lengthNames = []
         self.widthNames = []
-        #self.iw.measurements = [[]]
         self.iw.ellipses = []
         self.iw.widths = []
         self.iw.lengths = [[]]
@@ -422,15 +379,6 @@ class MainWindow(QMainWindow):
             self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
             self.iw.scene.realline = False
 
-        # Removed functionality for new dragable system (Elliott)
-        #if self.iw.measuring_widths:
-        #    self.iw.W.downdate()  #remove data
-        #    self.iw.scene.removeItem(self.iw.scene.ellipseItem)  #remove graphic
-        #    self.iw.scene.ellipseItem = False           # Why does this get set to false!?
-        #    self.iw.d[str(self.iw.k)].setPen(
-        #        QtGui.QPen(QtGui.QColor('black')))  #un-highlight next spine
-        #    self.iw.k += -1  #reduce count
-
         if self.iw.measuring_angle:
             self.iw.T.downdate()  #remove data
             self.iw._thispos = self.iw_lastpos
@@ -451,9 +399,6 @@ class MainWindow(QMainWindow):
         #okay in mm https://www.imaging-resource.com/PRODS/sony-a5100/sony-a5100DAT.HTM
         if name:
             #Convert pixels to meters
-            #measurements = [ f * fac * self.pixeldim * self.altitude / self.focal for f in self.iw.measurements]7
-            #lengths = [ f * fac * self.pixeldim * self.altitude / self.focal for f in self.iw.lengths]
-            #print(self.iw.widths)
             areas = self.iw.areaValues * (
                 fac * self.pixeldim * self.altitude / self.focal)**2
             values_optical = np.array([
@@ -486,7 +431,7 @@ class MainWindow(QMainWindow):
                 if self.lengthNames:
                     width_index = 0
                     for k,m in enumerate(self.lengthNames):
-                        l = "{0:.2f}".format(self.iw.lengths[k+12] * fac * self.pixeldim * self.altitude / self.focal)
+                        l = "{0:.2f}".format(self.iw.lengths[k] * fac * self.pixeldim * self.altitude / self.focal)
                         writer.writerow([m,l, "Meters"])  # Writes [Length Name][Length Measurement meters][Length measurement pixels]
                         if width_index < len(self.widthNames) and self.widthNames[width_index] == m: # Check if current length has widths or if width exists
                             # Iterate over width measurements
@@ -559,10 +504,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.oldPos = None
         self.factor = 1.0
         self.numwidths = None
-        #self.widths = []
         self.ellipses = []
         self.d = {}  #dictionary for line items
-        #self.k = 0 #initialize counter so lines turn yellow
         self.L = posData(np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))
         self.W = posData(np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))
         self.scene.realline = None
@@ -570,13 +513,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.setMouseTracking(True)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        #self.setRenderHints(QtGui.QPainter.Antialiasing
-        #                    | QtGui.QPainter.SmoothPixmapTransform)
-        #self.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        #self.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)
+       
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
-        #self.setInteractive(True)
 
     # Calculates width between corresponding ellipses
     # Calculates distance in pixels and appends widths[] list
@@ -634,8 +573,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             self.translate(delta.x(), delta.y())
         elif (any(rules)):
             QApplication.setOverrideCursor(QtCore.Qt.CursorShape.CrossCursor)  #change cursor
-        #else:
-        #    QApplication.setOverrideCursor(QtCore.Qt.CursorShape.ArrowCursor)  #change cursor
 
         #dragging line
         if self._thispos and any(rules):
@@ -707,37 +644,11 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
             if (self.parent().bezier.isChecked()) and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
 
-                def bezier_rational(points, nt):
-                    """Rational Bezier Curve fit"""
-                    # # https://gist.github.com/Alquimista/1274149
-                    # # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
-                    # n = len(points)
-                    # xp = np.array([p[0] for p in points])
-                    # yp = np.array([p[1] for p in points])
-                    # t = np.linspace(0.0, 1.0, nt)
-
-                    # #Bezier curve
-                    # B = np.array([ bernstein(i,n-1,t) for i in range(0,n) ])
-                    # xb = np.dot(xp, B)[::-1]
-                    # yb = np.dot(yp, B)[::-1]
-
-                    # #Analytic gradient for bezier curve
-                    # Qx = n*np.diff(xp)
-                    # Qy = n*np.diff(yp)
-                    # Bq = np.array([ bernstein(i,n-2,t) for i in range(0,n-1) ])
-                    # dxb = np.dot(Qx, Bq)[::-1]
-                    # dyb = np.dot(Qy, Bq)[::-1]
-
-                    # m = np.vstack((dxb,dyb))
-                    # m *= (1/np.linalg.norm(m, axis=0))
-                    # return xb, yb, m
-
                 nt = 100 #max(1000, self.numwidths * 50)  #num of interpolating points
                 t = np.linspace(0.0, 1.0, nt)
                 self.P = np.vstack((self.L.x, self.L.y)).T #control points
                 self.kb = len(self.P) - 1 #order of bezier curve # of control points (n) - 1
 
-                # self.xs, self.ys, self.m = bezier_rational(points, nt)
                 B = bezier(t, self.P, k = self.kb) #evaluate bezier curve along t
                 self.Q = self.kb*np.diff(self.P, axis = 0)
                 self.l = gauss_legendre(b = 1, f = bezier, P = self.Q, k = self.kb - 1, arc = True) #compute total arc length.
@@ -745,8 +656,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
                 self.xs, self.ys = B[:,0], B[:,1]
                 pts = np.array(list(map(self.qpt2pt, self.xs, self.ys)))
-                #x, y = pts[:, 0], pts[:, 1]
-                #self.l = np.cumsum(np.hypot(np.gradient(x), np.gradient(y))) #integrate for length
 
                 #draw cubic line to interpolated points
                 for i in range(1, nt - 1):
@@ -771,13 +680,11 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
                 self.xs, self.ys = x[0] + r*np.cos(theta), y[0] + r*np.sin(theta)
                 self.m = np.vstack(( slope*(r*0 + 1), -slope*(r*0 + 1) ))
-                #self.m = np.vstack(( (y[-1] - y[0])*(r*0 + 1), (x[-1] - x[0])*(r*0 + 1) ))
                 self.m = np.vstack((  (x[-1] - x[0])*(r*0 + 1), (y[-1] - y[0])*(r*0 + 1) ))
                 self.l = np.cumsum(np.hypot(np.diff(self.xs), np.diff(self.ys)))  #integrate for length
                 self.lengths[-1] = self.l[-1]
 
             self.lengths.extend([np.nan])
-            #self.widths.append([])
 
         QApplication.setOverrideCursor(QtCore.Qt.CursorShape.ArrowCursor)  #change cursor
         if self.parent().bezier.isChecked() or (len(np.vstack((self.L.x, self.L.y)).T) <= 2):
@@ -828,17 +735,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             'Drag width segment points to make width measurements perpendicular to the length segment'
         )
 
-        # #get pts for width drawing
-        # bins = np.linspace(0, self.l[-1], self.numwidths + 1)
-        # inds = np.digitize(self.l, bins)
-        # __, self.inddec = np.unique(inds, return_index = True)
-
-        # pts = np.array(list(map(qpt2pt, self.xs, self.ys)))
-        # x, y = pts[:, 0], pts[:, 1]
-        # self.xp, self.yp = x[self.inddec], y[self.inddec]
-        # self.slopes = self.m[:,self.inddec]
-        # #Identify width spine points
-
         #Bisection method on Gauss-Legendre Quadrature to find equal spaced intervals
         s_i = np.linspace(0,1,self.numwidths+2)[1:-1] #only need to draw widths for inner pts
         t_i = np.array([root_scalar(gauss_legendre, x0 = s_i, bracket = [-1,1], method = "bisect",
@@ -869,14 +765,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             # t2 = 0
             # t0 = np.hypot(L,H) #preallocate t0 as diagonal distance
 
-            # #check intersection w/ bounding rectangle
-            # for offset in ([0,0],[L,H]):
-            #     for ev in ([1,0],[0,1]):
-            #         A = np.matrix([ [vx, ev[0]] , [vy, ev[1]] ])
-            #         b = np.array([offset[0] - x1, offset[1] - y1])
-            #         T = np.linalg.solve(A,b)[0]
-            #         t0 = min(T, t0, key=abs) #find nearest intersection to bounds
-
             xi,yi = [], []
             for bound in ([0,0],[L,H]):
                 for ev in ([1,0],[0,1]):
@@ -893,17 +781,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                         print("success")
                         xi.append(xint)
                         yi.append(yint)
-            #assert False
-            # #Find 2nd furthest intersection within bounds
-            # bounds = np.array( [(L - x1)/vx, (H - y1)/vy, -x1/vx, -y1/vy] )
-            # t2 = max(-t0, np.sign(-t0)* np.partition(bounds,-2)[-2], key=abs)
-
-            # x0 = x1 + t0*vx
-            # y0 = y1 + t0*vy
-            # x2 = x1 + t2*vx
-            # y2 = y1 + t2*vy
-
-            # for l, (x, y) in enumerate(zip([x0, x2], [y0, y2])):
 
             # Draw width lines (And draw starting points)
 
@@ -933,10 +810,9 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 self.scene.addItem(self.scene.interpLine)
                 self.scene.addItem(ellipse_group[-1])   # Grab last appended ellipse
 
-
-
         self.ellipses.append(ellipse_group) # Store width group
 
+    # detects mouse click of main window
     def mousePressEvent(self, event):
         #http://pyqt.sourceforge.net/Docs/PyQt4/qgraphicsscenemouseevent.html
         #https://stackoverflow.com/questions/21197658/how-to-get-pixel-on-qgraphicspixmapitem-on-a-qgraphicsview-from-a-mouse-click
@@ -1010,8 +886,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             x1, y1 = data.x(), data.y()
 
             #perpindicular slopes
-            # vx = self.slopes[:,k][1]
-            # vy = -self.slopes[:,k][0]
             vx, vy = self.slopes[k,0], self.slopes[k,1]
 
             A = np.matrix([[vx, -vy], [vy, vx]])
@@ -1022,39 +896,12 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             yi = y0 + t[0]*vy
 
             self.W.update(xi,yi)
-            #p = QtCore.QPointF(xi, yi)
 
-            #s = 10  #dot size
-            #self.scene.ellipseItem = QGraphicsEllipseItem(0, 0, s, s)   # Define ellipse
-            #self.scene.ellipseItem.setPos(p.x() - s / 2, p.y() - s / 2) # Draw ellipse to scene
-            #qb = QtGui.QBrush()
-            #qb.setColor(QtGui.QColor('red'))
-            #self.scene.ellipseItem.setBrush(qb)
-            #self.scene.ellipseItem.setFlag(
-            #    QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations,
-            #    True)  #size stays small, but doesnt translate if false
-            #self.scene.addItem(self.scene.ellipseItem)
-            #self.k += 1
+            self.parent().statusbar.showMessage('Width measurements complete')
 
-            #Highlight width lines
-            #if self.k < self.nspines:
-            #    self.d[str(self.k)].setPen(QtGui.QPen(QtGui.QColor('yellow'))) #Highlight next spine
+            self.measuring_widths = False
 
-            # When all width measurements are inputted
-            #if self.k == self.nspines:
-            #    self.parent().statusbar.showMessage('Width measurements complete')
-            #    self.measuring_widths = False
-            #    self.parent().widthsButton.setEnabled(False)
-            #    self.parent().widthsButton.setChecked(False)
-            #    self.parent().bezier.setEnabled(True)
-            #    width = np.sqrt(
-            #        (self.W.x[1::2] - self.W.x[0::2])**2 +
-            #        (self.W.y[1::2] - self.W.y[0::2])**2)  #calculate width of entire line
-            #    self.widths[-1] = width    # Output is in Pixels
-        self.parent().statusbar.showMessage('Width measurements complete')
-        self.measuring_widths = False
-        self.parent().widthsButton.setEnabled(False)
-        self.parent().widthsButton.setChecked(False)
+            self.parent().widthsButton.setChecked(False)
         super().mousePressEvent(event)
 
     def hoverEnterEvent(self, event):
@@ -1164,7 +1011,7 @@ def resource_path(relative_path):
 # Input: Line P1 (QPointF), Line P2 (QPointF)
 class MovingEllipse(QGraphicsPixmapItem):
     def __init__(self, parent,lp1, lp2):
-        # LP2 IS ALWAYS BORDER POINT (PyQt6.QtCore.QPointF(1030.9353133069922, 0.0))
+        # LP2 is always border point (PyQt6.QtCore.QPointF(1030.9353133069922, 0.0))
         super(MovingEllipse,self).__init__()
 
         scaledSize = int(parent.scene.height()/30)
@@ -1175,22 +1022,18 @@ class MovingEllipse(QGraphicsPixmapItem):
 
         self.setPixmap(self.Pixmap)
         self.setOffset(QtCore.QPointF(-scaledSize/2,-scaledSize/2)) # Set offset to center of image
-        #self.setRect(-10,-10,20,20)
         self.midPoint = (lp1 + lp2)/2    # QPointF
         self.cetnerLinePoint = lp1  # Used in
 
         self.p1 = None
         self.p2 = None
-        self.parent = parent            # to update widths measurement
+        self.parent = parent            # Used for updating widths measurement
         self.pointAssignment(lp1,lp2)
         # Find slope of line (y2-y1)/(x2-x1)
         self.m = (self.p2.y()-self.p1.y())/(self.p2.x()-self.p1.x())
         # Find X intercept
         self.y0 = (lp1.y())-(self.m*lp1.x())  # y1-(m*x1) = b
         self.x0 = (self.y0*-1)/self.m   # -y0/slope
-        #print("midpoint: ", self.midPoint)
-        #print("Y0: ", self.y0)
-        #print("m: ", self.m)
 
         # Set distance from linear measurement
         d = np.sqrt((lp1.x()-lp2.x())**2 + (lp1.y()-lp2.y())**2)
@@ -1214,25 +1057,16 @@ class MovingEllipse(QGraphicsPixmapItem):
     def hoverEnterEvent(self, event):
         print("Hover")
         QApplication.setOverrideCursor(QtCore.Qt.CursorShape.OpenHandCursor)
-        #super(MovingEllipse, self).hoverEnterEvent(event)
-        #return super(MovingEllipse, self).hoverEnterEvent(event)
 
     # Mouse Stops Hovering
     def hoverLeaveEvent(self, event):
-        print("No Hover")
         QApplication.restoreOverrideCursor()
-        #super(MovingEllipse, self).hoverLeaveEvent(event)
-        #return super().hoverLeaveEvent(event)
 
     def mousePressEvent(self, event):
-        print("Press")
         self.drag = True
-        #return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        #print("Mouse move")
         if self.drag:
-            #super().mouseMoveEvent(event)
             orig_curs_pos = event.lastScenePos()
             updated_curs_pos = event.scenePos()
             orig_pos = self.scenePos()
@@ -1242,16 +1076,13 @@ class MovingEllipse(QGraphicsPixmapItem):
 
             # Match X position of Ellipse to slope of line (m = (y1-y0)/(x1-x0))
             # y/m - r = x
-            # Issue when line starting position goes below 0
+            # Issue when line starting position goes below 0 (address in future!!)
             updated_curs_x = updated_curs_y/self.m + self.x0
 
             self.setPos(QtCore.QPointF(updated_curs_x, updated_curs_y))
 
     def mouseReleaseEvent(self, event):
-        #super().mouseReleaseEvent(event)
         self.drag = False
-        print("release")
-        #print(self.pos())
 
 class angleData():  #actually need separate class from posdata? probably not
 
@@ -1265,16 +1096,16 @@ class angleData():  #actually need separate class from posdata? probably not
         self.t = self.t[:-1]
 
 
-# Main window hook for crash logging
+# Program crash hook for error logging
 def except_hook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
     dialog = QMessageBox()
     dialog.setIcon(QMessageBox.Icon.Critical)
     dialog.setWindowTitle("Error")
-    dialog.setText("Error: Crash caught, see details for more.")
+    dialog.setText("Error: Crash caught, save details to file.")
     dialog.setDetailedText(tb)
     dialog.setStandardButtons(QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel)
-    ret = dialog.exec()   # show box
+    ret = dialog.exec()   # Show dialog box
     if ret == QMessageBox.StandardButton.Save:
         path = QFileDialog().getExistingDirectory(dialog,'Select a directory')
         if(path):
@@ -1282,20 +1113,20 @@ def except_hook(exc_type, exc_value, exc_tb):
             print("saving: ", path)
             with open(path, 'w') as file:
                 file.write("System: " + platform.system() + '\n')
-                file.write("Node: " + platform.node() + '\n')
+                file.write("OS: " + os.name + '\n')
+                file.write("Python Version: " + platform.python_version() + '\n')
+                file.write("Python Implementation: " + platform.python_implementation() + '\n')
                 file.write("Release: " + platform.release() + '\n')
                 file.write("Version: " + platform.version() + '\n')
                 file.write("Machine: " + platform.machine() + '\n')
                 file.write("Processor: " + platform.processor() + '\n' + '\n')
                 file.write(tb)
 
-    #print("Error caught:\n",tb)
     QApplication.quit() # Quit application
 
 def main():
     sys.excepthook = except_hook
     app = QApplication(sys.argv)
-    #GUI = Window()
     main = MainWindow()
     main.show()
     app.exec()
