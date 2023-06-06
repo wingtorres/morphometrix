@@ -9,9 +9,9 @@ assignees: ''
 
 ## System Information 
 
-Operating System (e.g. Mac OS Monterey, Windows 11, Ubuntu Lunar Lobster):
-Chip (e.g. x86-64, Mac M1):
-Python version:
+Operating System (e.g. Mac OS Monterey, Windows 11, Ubuntu Lunar Lobster):  
+Chip (e.g. x86-64, Mac M1):  
+Python version:  
 
 ## Verify that you can carry out the following actions
 
