@@ -23,4 +23,6 @@ Python version:
 - [ ] Measure an area
 - [ ] Export measurements saves a .csv w/ the correct measurements
 
+## If you encounter an error, please copy paste the error log info here
+
 ## Please provide additional feedback and/or suggestions below
