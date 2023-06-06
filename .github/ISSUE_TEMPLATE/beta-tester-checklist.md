@@ -15,14 +15,17 @@ Python version:
 
 ## Verify that you can carry out the following actions
 
+Mark inside the brackets with an [x] to 
+
 - [ ] Measure a length w/ Bezier curve 
 - [ ] Measure a length w/o Bezier curve
 - [ ] Measure width segments w/ Bezier curve
 - [ ] Measure width segments w/o Bezier curve
 - [ ] Measure an angle
 - [ ] Measure an area
-- [ ] Export measurements saves a .csv w/ the correct measurements
+- [ ] Export measurements saves a .csv and .png w/ the correct measurements
 
-## If you encounter an error, please copy paste the error log info here
+## If you encounter an error, please copy paste the error log info here. Attach the .csv/.png to the issue if possible.
+
 
 ## Please provide additional feedback and/or suggestions below
