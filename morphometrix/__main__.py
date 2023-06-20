@@ -18,8 +18,11 @@ from PyQt6.QtGui import QShortcut, QFont, QPixmap
 from PyQt6.QtCore import Qt
 
 # ------------------------------
-#   Future developer credits
-#
+#   Developed By:
+#   Walter Torres
+#   Kevin Bierlich
+#   Clara Bird
+#   Elliott Chimienti
 # ------------------------------
 
 def bezier(t,P,k,arc = False):
@@ -413,7 +416,7 @@ class MainWindow(QMainWindow):
 
 	        #Write .csv file
             print(f"Writing {name} to file")
-            with open(name + '.csv', 'w') as csvfile:
+            with open(name + '.csv', 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(["Object","Value","Value_unit"])  # Define Columns
 
