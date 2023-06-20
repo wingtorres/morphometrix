@@ -769,17 +769,23 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 end = QtCore.QPointF(x, y)
 
                 # if this is the first itertion
-                if k == 0 and l == 0:
-                    A = QGraphicsTextItem(str("A"))
-                    A.setFont(font)
-                    A.setPos((start+end)/2) # Set to mid-Point
-                    self.scene.addItem(A)
-                if k == 0 and l == 1:
-                    B = QGraphicsTextItem(str("B"))
-                    B.setFont(font)
-                    B.setPos((start+end)/2)
-                    self.scene.addItem(B)
-
+                if k == 0:
+                    # Set distance from linear measurement
+                    lineLength = np.sqrt((start.x()-end.x())**2 + (start.y()-end.y())**2)
+                    t = (500)/lineLength # Ratio of desired distance from center / total length of line
+                    posAB = QtCore.QPointF(((1-t)*start.x()+t*end.x()),((1-t)*start.y()+t*end.y()))
+                    if l == 0:
+                        A = QGraphicsTextItem(str("A"))
+                        A.setFont(font)
+                        A.setPos(posAB) # Set to mid-Point
+                        #A.setPos((start+end)/2)
+                        self.scene.addItem(A)
+                    elif l == 1:
+                        B = QGraphicsTextItem(str("B"))
+                        B.setFont(font)
+                        B.setPos(posAB)
+                        #B.setPos((start+end)/2)
+                        self.scene.addItem(B)
                 Ell = MovingEllipse(self, start, end)
                 ellipse_group.append(Ell)
                 self.scene.interpLine = QGraphicsLineItem(
