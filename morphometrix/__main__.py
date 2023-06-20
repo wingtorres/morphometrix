@@ -525,22 +525,21 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         for x in range(0,len(self.ellipses)):   # iterate over every group of ellipses
             calculated_widths = []
             for y in range(0,len(self.ellipses[x]),2):  # Iterate over every ellipse in group (might be causing incorrect amount at export issue)
-                print("Bias: ", bias)
                 if bias == 'None':
                     width = np.sqrt(
                             (self.ellipses[x][y].scenePos().x() - self.ellipses[x][y+1].scenePos().x())**2 +
                             (self.ellipses[x][y].scenePos().y() - self.ellipses[x][y+1].scenePos().y())**2)  #calculate width of entire line
                 elif bias == 'Side A':
                     # (A point - centerlinePoint) * 2
-                    print("P1x: ",self.ellipses[x][y].scenePos().x())
-                    print("P2x: ",self.ellipses[x][y].cetnerLinePoint.x())
+                    # print("P1x: ",self.ellipses[x][y].scenePos().x())
+                    # print("P2x: ",self.ellipses[x][y].cetnerLinePoint.x())
                     width = np.sqrt(
                             ((self.ellipses[x][y].scenePos().x() - self.ellipses[x][y].cetnerLinePoint.x())*2)**2 +
                             ((self.ellipses[x][y].scenePos().y() - self.ellipses[x][y].cetnerLinePoint.y())*2)**2)  #calculate width of entire line
                 else:   # Bias B
                     # (B point - centerlinePoint) * 2
-                    print("P1x: ",self.ellipses[x][y+1].scenePos().x())
-                    print("P2x: ",self.ellipses[x][y+1].cetnerLinePoint.x())
+                    # print("P1x: ",self.ellipses[x][y+1].scenePos().x())
+                    # print("P2x: ",self.ellipses[x][y+1].cetnerLinePoint.x())
                     width = np.sqrt(
                             ((self.ellipses[x][y+1].scenePos().x() - self.ellipses[x][y+1].cetnerLinePoint.x())*2)**2 +
                             ((self.ellipses[x][y+1].scenePos().y() - self.ellipses[x][y+1].cetnerLinePoint.y())*2)**2)  #calculate width of entire line
@@ -627,7 +626,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         super().mouseMoveEvent(event)
 
     def mouseDoubleClickEvent(self, event):
-
         #only delete lines if bezier fit
         if self.measuring_length and self.parent().bezier.isChecked() and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
             self.parent().statusbar.showMessage('Length measurement complete.')
@@ -642,8 +640,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             # or rational bezier curve - tuneable approximating/interpolating. ref. wikipedia
             # https://codeplea.com/introduction-to-splines
 
-            if (self.parent().bezier.isChecked()) and (len(np.vstack((self.L.x, self.L.y)).T) > 2):
-
+            if (self.parent().bezier.isChecked()) and (len(np.vstack((self.L.x, self.L.y)).T) > 1):
                 nt = 100 #max(1000, self.numwidths * 50)  #num of interpolating points
                 t = np.linspace(0.0, 1.0, nt)
                 self.P = np.vstack((self.L.x, self.L.y)).T #control points
@@ -655,34 +652,16 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 self.lengths[-1] = self.l
 
                 self.xs, self.ys = B[:,0], B[:,1]
-                pts = np.array(list(map(self.qpt2pt, self.xs, self.ys)))
 
                 #draw cubic line to interpolated points
                 for i in range(1, nt - 1):
                     P0 = QtCore.QPointF( self.xs[i-1], self.ys[i-1] )#.toPoint()
                     P1 = QtCore.QPointF( self.xs[i  ], self.ys[i  ] )#.toPoint()
                     P2 = QtCore.QPointF( self.xs[i+1], self.ys[i+1] )#.toPoint()
-                    start = self.mapFromScene(self.mapToScene(P0.toPoint()))
-                    mid = self.mapFromScene(self.mapToScene(P1.toPoint()))
-                    end = self.mapFromScene(self.mapToScene(P2.toPoint()))
+
                     path = QtGui.QPainterPath(P0)
                     path.cubicTo(P0, P1, P2)
                     self.scene.addPath(path)
-
-            if (not self.parent().bezier.isChecked()) or (len(np.vstack((self.L.x, self.L.y)).T) <= 2):
-                """Simple linear points if piecewise mode (or only two points used?)"""
-                pts = np.array(list(map(self.qpt2pt, self.L.x, self.L.y)))
-                x, y = pts[:, 0], pts[:, 1]
-                slope = (y[-1] - y[0]) / (x[-1] - x[0])
-                theta = np.arctan(slope)
-                distance = np.hypot( x[-1] - x[0], y[-1] - y[0] )
-                r = np.linspace(0, distance, 1000)
-
-                self.xs, self.ys = x[0] + r*np.cos(theta), y[0] + r*np.sin(theta)
-                self.m = np.vstack(( slope*(r*0 + 1), -slope*(r*0 + 1) ))
-                self.m = np.vstack((  (x[-1] - x[0])*(r*0 + 1), (y[-1] - y[0])*(r*0 + 1) ))
-                self.l = np.cumsum(np.hypot(np.diff(self.xs), np.diff(self.ys)))  #integrate for length
-                self.lengths[-1] = self.l[-1]
 
             self.lengths.extend([np.nan])
 
@@ -737,8 +716,8 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
         #Bisection method on Gauss-Legendre Quadrature to find equal spaced intervals
         s_i = np.linspace(0,1,self.numwidths+2)[1:-1] #only need to draw widths for inner pts
-        t_i = np.array([root_scalar(gauss_legendre, x0 = s_i, bracket = [-1,1], method = "bisect",
-                            args = (bezier, self.Q, self.kb-1, True, s, self.l) ).root for s in s_i])
+        # Crashing with two point length measurements
+        t_i = np.array([root_scalar(gauss_legendre, x0 = s_i, bracket = [-1,1], method = "bisect", args = (bezier, self.Q, self.kb-1, True, s, self.l) ).root for s in s_i])
         B_i = bezier(np.array(t_i), P = self.P, k = self.kb)
         self.xp, self.yp = B_i[:,0], B_i[:,1]
 
@@ -771,7 +750,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                     A = np.matrix([ [vx, ev[0]] , [vy, ev[1]] ])
                     b = np.array([bound[0] - x1, bound[1] - y1])
                     T = np.linalg.solve(A,b)[0] #only need parametric value for our vector, not bound vector
-                    #t0 = min(T, t0, key=abs) #find nearest intersection to bounds
 
                     xint = x1 + T*vx
                     yint = y1 + T*vy
