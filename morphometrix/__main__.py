@@ -98,7 +98,7 @@ class Window(QWidget):
         self.scale_slider = QSlider(orientation=Qt.Orientation.Horizontal)
         self.scale_slider.setMaximum(20)
         self.scale_slider.setValue(10)
-        self.scale_slider.sliderMoved.connect(self.slider_changed)
+        self.scale_slider.valueChanged.connect(self.slider_changed)
 
         self.label_not = QLabel("Notes:")
         self.notes = QPlainTextEdit()
@@ -143,6 +143,7 @@ class Window(QWidget):
         self.iw.picked_color = color
 
     def slider_changed(self):
+        self.scale_slider.value() # Value grab lags behind actually value?
         self.iw.slider_moved(self.scale_slider.value())
 
     def close_application(self):
@@ -515,7 +516,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.view = QGraphicsView(self.scene)
 
         self.picked_color = QtGui.QColor("red")
-        self.slider_pos = 5
+        self.slider_pos = 10
         self.pixmap = None
         self._lastpos = None
         self._thispos = None
