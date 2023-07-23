@@ -13,8 +13,8 @@ from scipy.sparse import diags
 from scipy.optimize import root_scalar
 
 from PySide6 import QtGui, QtCore
-from PySide6.QtWidgets import QColorDialog ,QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsPixmapItem,QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
-from PySide6.QtGui import QShortcut, QFont, QPixmap
+from PySide6.QtWidgets import QSlider ,QColorDialog ,QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsPixmapItem,QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
+from PySide6.QtGui import QShortcut, QFont, QPixmap, QCursor
 from PySide6.QtCore import Qt
 
 # ------------------------------
@@ -94,6 +94,12 @@ class Window(QWidget):
         self.side_bias = QComboBox()
         self.side_bias.addItems(["None","Side A", "Side B"])
 
+        self.label_scale = QLabel("Crosshair Size")
+        self.scale_slider = QSlider(orientation=Qt.Orientation.Horizontal)
+        self.scale_slider.setMaximum(20)
+        self.scale_slider.setValue(10)
+        self.scale_slider.sliderMoved.connect(self.slider_changed)
+
         self.label_not = QLabel("Notes:")
         self.notes = QPlainTextEdit()
 
@@ -121,12 +127,14 @@ class Window(QWidget):
         self.grid.addWidget(self.numwidths, 5, 1)
         self.grid.addWidget(self.label_side,6,0)
         self.grid.addWidget(self.side_bias,6,1)
-        self.grid.addWidget(self.label_not, 7, 0)
-        self.grid.addWidget(self.notes, 7, 1)
-        self.grid.addWidget(self.label_color,8,0)
-        self.grid.addWidget(self.button_color,8,1)
-        self.grid.addWidget(self.manual, 9, 3)
-        self.grid.addWidget(self.exit, 10, 3)
+        self.grid.addWidget(self.label_scale,7,0)
+        self.grid.addWidget(self.scale_slider,7,1)
+        self.grid.addWidget(self.label_not, 8, 0)
+        self.grid.addWidget(self.notes, 8, 1)
+        self.grid.addWidget(self.label_color,9,0)
+        self.grid.addWidget(self.button_color,9,1)
+        self.grid.addWidget(self.manual, 10, 3)
+        self.grid.addWidget(self.exit, 11, 3)
         self.setLayout(self.grid)
 
     def color_changed(self):
@@ -134,6 +142,8 @@ class Window(QWidget):
         self.button_color.setStyleSheet("background-color: "+color.name())
         self.iw.picked_color = color
 
+    def slider_changed(self):
+        self.iw.slider_moved(self.scale_slider.value())
 
     def close_application(self):
         choice = QMessageBox.question(self, 'exit', "Exit program?",
@@ -275,9 +285,10 @@ class MainWindow(QMainWindow):
         self.areaNames = []
         self.lengthNames = []
         self.widthNames = []
-        self.iw.ellipses = []
-        self.iw.widths = []
-        self.iw.lengths = [[]]
+
+        self.iw.ellipses = []       # Stores ellipse objects 
+        self.iw.widths = []         # Stores calculated width lengths on export
+        self.iw.lengths = [[]]      # Stores length objects
         self.iw.L = posData(
             np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))  #lengths
         self.iw.A = posData(
@@ -287,6 +298,7 @@ class MainWindow(QMainWindow):
         self.iw.T = angleData(np.empty(shape=(0, 0)))  #angles
         self.iw.angleValues = np.empty((0,0))
         self.iw.areaValues = np.empty((0,0))
+        
         self.iw._lastpos = None
         self.iw._thispos = None
         self.iw.measuring_length = False
@@ -373,13 +385,12 @@ class MainWindow(QMainWindow):
         else:
             self.areaButton.setChecked(False)
 
-    # TODO:
     # Create list (creation_record) of PyQt objects drawn to screen in order of creation
     # Pop length, angle, area, or width measurement lists depending on pop object in creation_record
     def undo(self):
 
+        #self.
         pass
-
         # if self.iw.measuring_length:
         #     self.iw._thispos = self.iw._lastpos
         #     self.iw.L.downdate()  #remove data
@@ -505,6 +516,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.view = QGraphicsView(self.scene)
 
         self.picked_color = QtGui.QColor("red")
+        self.slider_pos = 5
         self.pixmap = None
         self._lastpos = None
         self._thispos = None
@@ -519,10 +531,16 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.oldPos = None
         self.factor = 1.0
         self.numwidths = None
+
         self.ellipses = []
-        self.d = {}  #dictionary for line items
+        self.lines = []
+        self.areas = []
+        self.angles = []
+        self.lastadded = []
+        #self.d = {}  #dictionary for line items
         self.L = posData(np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))
         self.W = posData(np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))
+        
         self.scene.realline = None
         self.scene.testline = None
         self.setMouseTracking(True)
@@ -532,6 +550,12 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
 
+    def slider_moved(self, value):
+        self.slider_pos = value
+        for ellipse_group in self.ellipses:   # iterate over every group of ellipses
+            for ellipse in ellipse_group:
+                ellipse.update_scale(value)
+                
     # Calculates width between corresponding ellipses
     # Calculates distance in pixels and appends widths[] list
     # Input: None
@@ -621,23 +645,28 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 if intersect:
                     #indicate intersect point
                     p = QtCore.QPointF(xi, yi)
-                    self.scene.area_ellipseItem = QGraphicsEllipseItem(0, 0, 10, 10)
-                    self.scene.area_ellipseItem.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
-                    self.scene.area_ellipseItem.setBrush(
+                    area_item = QGraphicsEllipseItem(0, 0, 10, 10)
+                    
+                    area_item.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
+                    area_item.setBrush(
                     QtGui.QBrush(QtGui.QColor('blue'))) #, style=QtCore.Qt.BrushStyle.SolidPattern))
-                    self.scene.area_ellipseItem.setFlag(
+                    area_item.setFlag(
                     QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations,
                     False)  #size stays small, but doesnt translate if set to false
-                    self.scene.addItem(self.scene.area_ellipseItem)
+                    self.scene.addItem(area_item)
+                    #self.areas.append(area_item)
+                    
                     #shade polygon region
                     points = [ QtCore.QPointF(x,y) for x,y in zip( self.A.x[k:], self.A.y[k:] ) ]
                     points.append(QtCore.QPointF(xi,yi))
-                    self.scene.polyItem = QGraphicsPolygonItem(QtGui.QPolygonF(points))
-                    self.scene.polyItem.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )
-                    self.scene.addItem(self.scene.polyItem)
+                    polyItem = QGraphicsPolygonItem(QtGui.QPolygonF(points))
+                    polyItem.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )
+                    self.scene.addItem(polyItem)
+                    #self.areas.append(polyItem)
+                    #self.lastadded.append("a")
 
-            self.scene.testline = QGraphicsLineItem(QtCore.QLineF(start, end))
-            self.scene.addItem(self.scene.testline)
+            testline = QGraphicsLineItem(QtCore.QLineF(start, end))
+            self.scene.addItem(testline)
         super().mouseMoveEvent(event)
 
     def mouseDoubleClickEvent(self, event):
@@ -717,7 +746,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
     def measure_widths(self):
 
         self.measuring_widths = True
-        self.parent().widthsButton.setChecked(True)
+        self.parent().widthsButton.setEnabled(False)
         self.numwidths = int(self.parent().subWin.numwidths.text())-1
         self.k = 0
         self.W = posData(
@@ -793,15 +822,13 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                         A = QGraphicsTextItem(str("A"))
                         A.setFont(font)
                         A.setPos(posAB) # Set to mid-Point
-                        #A.setPos((start+end)/2)
                         self.scene.addItem(A)
                     elif l == 1:
                         B = QGraphicsTextItem(str("B"))
                         B.setFont(font)
                         B.setPos(posAB)
-                        #B.setPos((start+end)/2)
                         self.scene.addItem(B)
-                Ell = MovingEllipse(self, start, end)
+                Ell = MovingEllipse(self, start, end, self.slider_pos)
                 ellipse_group.append(Ell)
                 self.scene.interpLine = QGraphicsLineItem(
                     QtCore.QLineF(start, end))
@@ -900,7 +927,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
 
             self.measuring_widths = False
 
-            self.parent().widthsButton.setChecked(False)
+            self.parent().widthsButton.setEnabled(False)
         super().mousePressEvent(event)
 
     def hoverEnterEvent(self, event):
@@ -1009,11 +1036,11 @@ def resource_path(relative_path):
 # Ellipse is bound to parent line
 # Input: Line P1 (QPointF), Line P2 (QPointF)
 class MovingEllipse(QGraphicsPixmapItem):
-    def __init__(self, parent,lp1, lp2):
+    def __init__(self, parent,lp1, lp2, scale):
         # LP2 is always border point (PyQt6.QtCore.QPointF(1030.9353133069922, 0.0))
         super(MovingEllipse,self).__init__()
 
-        scaledSize = int(parent.scene.height()/30)
+        scaledSize = int(parent.scene.height()/80) + (scale*10)
         Image = QPixmap(resource_path("crosshair.png")).scaled(scaledSize,scaledSize)
         self.Pixmap = QPixmap(Image.size())
         self.Pixmap.fill(parent.picked_color)
@@ -1024,12 +1051,13 @@ class MovingEllipse(QGraphicsPixmapItem):
         self.midPoint = (lp1 + lp2)/2    # QPointF
         self.cetnerLinePoint = lp1  # Used in
 
-        self.p1 = None
-        self.p2 = None
+        self.p1 = lp1
+        self.p2 = lp2
+
         self.parent = parent            # Used for updating widths measurement
-        self.pointAssignment(lp1,lp2)
         # Find slope of line (y2-y1)/(x2-x1)
         self.m = (self.p2.y()-self.p1.y())/(self.p2.x()-self.p1.x())
+        self.assignPoints(self.m,lp1,lp2)
         # Find X intercept
         self.y0 = (lp1.y())-(self.m*lp1.x())  # y1-(m*x1) = b
         self.x0 = (self.y0*-1)/self.m   # -y0/slope
@@ -1038,19 +1066,36 @@ class MovingEllipse(QGraphicsPixmapItem):
         d = np.sqrt((lp1.x()-lp2.x())**2 + (lp1.y()-lp2.y())**2)
         t = (scaledSize*3)/d # Ratio of desired distance from center / total length of line
 
-
         self.setPos(QtCore.QPointF(((1-t)*lp1.x()+t*lp2.x()),((1-t)*lp1.y()+t*lp2.y())))
         self.setAcceptHoverEvents(True)
         self.drag = False
 
-    # set points correctly for slope calculations
-    def pointAssignment(self,lp1,lp2):
-        if lp1.y() > lp2.y():
-            self.p1 = lp2
-            self.p2 = lp1
-        else:
-            self.p1 = lp1
-            self.p2 = lp2
+    def update_scale(self, scale):
+        scaledSize = int(self.parent.scene.height()/60) + (scale*10)
+        Image = QPixmap(resource_path("crosshair.png")).scaled(scaledSize,scaledSize)
+        self.Pixmap = QPixmap(Image.size())
+        self.Pixmap.fill(self.parent.picked_color)
+        self.Pixmap.setMask(Image.createMaskFromColor(Qt.GlobalColor.transparent))
+
+        self.setPixmap(self.Pixmap)
+        self.setOffset(QtCore.QPointF(-scaledSize/2,-scaledSize/2)) # Set offset to center of image
+
+    def assignPoints(self, slope, lp1, lp2):
+        # Set Points depending on their path slope 
+        if slope > -0.5 and slope < 0.5:    # set points depending on X
+            if lp1.x() < lp2.x():
+                self.p1 = lp1               # P1 should always hold the smaller comparetor
+                self.p2 = lp2
+            else:
+                self.p1 = lp2
+                self.p2 = lp1
+        else:                               # set points depending on Y
+            if lp1.y() < lp2.y():
+                self.p1 = lp1
+                self.p2 = lp2
+            else:
+                self.p1 = lp2
+                self.p2 = lp1
 
     # Mouse Hover
     def hoverEnterEvent(self, event):
@@ -1063,6 +1108,7 @@ class MovingEllipse(QGraphicsPixmapItem):
 
     def mousePressEvent(self, event):
         self.drag = True
+        QApplication.setOverrideCursor(QtCore.Qt.CursorShape.BlankCursor)
 
     def mouseMoveEvent(self, event):
         if self.drag:
@@ -1072,35 +1118,34 @@ class MovingEllipse(QGraphicsPixmapItem):
 
             # Update position of Ellipse to match mouse
 
-            updated_curs_y = updated_curs_pos.y() - orig_curs_pos.y() + orig_pos.y()
-            updated_curs_x = updated_curs_pos.x() - orig_curs_pos.x() + orig_pos.x()
-            print("UPdate: ", updated_curs_y)
-            print("UPdate: ", updated_curs_y)
+            ell_y = updated_curs_pos.y() - orig_curs_pos.y() + orig_pos.y()
+            ell_x = updated_curs_pos.x() - orig_curs_pos.x() + orig_pos.x()
 
-            
             # Use X of mouse when line is horizontal, and Y when verticle
             if self.m > -0.5 and self.m < 0.5:
                 # y = mx + b
-                updated_curs_y = updated_curs_x*self.m + self.y0
+                if ell_x < self.p1.x():
+                    ell_x = self.p1.x()
+                elif ell_x > self.p2.x():
+                    ell_x = self.p2.x()
+                ell_y = ell_x*self.m + self.y0
+                
             else:
                 # x = y/m - r
-                updated_curs_x = updated_curs_y/self.m + self.x0
+                # Stay within boundry
+                if ell_y < self.p1.y():
+                    ell_y = self.p1.y()
+                elif ell_y > self.p2.y():
+                    ell_y = self.p2.y()
 
-            # Crosshairs wont exceed boundries
-            if updated_curs_y < 0:
-                updated_curs_y = 0
-            elif updated_curs_y > self.parent.scene.height():
-                updated_curs_y = self.parent.scene.height()
-
-            if updated_curs_x < 0:
-                updated_curs_x = 0
-            elif updated_curs_x > self.parent.scene.width():
-                updated_curs_x = self.parent.scene.width()
-
-            self.setPos(QtCore.QPointF(updated_curs_x, updated_curs_y))
+                ell_x = ell_y/self.m + self.x0
+                
+            self.setPos(QtCore.QPointF(ell_x, ell_y))
 
     def mouseReleaseEvent(self, event):
         self.drag = False
+        #QCursor.setPos(self.scenePos().toPoint())  # Requires special permissions :/
+        QApplication.restoreOverrideCursor()
 
 class angleData():  #actually need separate class from posdata? probably not
 
