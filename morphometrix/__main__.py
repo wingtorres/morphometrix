@@ -389,7 +389,6 @@ class MainWindow(QMainWindow):
     # Pop length, angle, area, or width measurement lists depending on pop object in creation_record
     def undo(self):
 
-        #self.
         pass
         # if self.iw.measuring_length:
         #     self.iw._thispos = self.iw._lastpos
@@ -535,8 +534,6 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         self.ellipses = []
         self.lines = []
         self.areas = []
-        self.angles = []
-        self.lastadded = []
         #self.d = {}  #dictionary for line items
         self.L = posData(np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))
         self.W = posData(np.empty(shape=(0, 0)), np.empty(shape=(0, 0)))
@@ -556,6 +553,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
             for ellipse in ellipse_group:
                 ellipse.update_scale(value)
                 
+
     # Calculates width between corresponding ellipses
     # Calculates distance in pixels and appends widths[] list
     # Input: None
@@ -645,28 +643,23 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
                 if intersect:
                     #indicate intersect point
                     p = QtCore.QPointF(xi, yi)
-                    area_item = QGraphicsEllipseItem(0, 0, 10, 10)
-                    
-                    area_item.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
-                    area_item.setBrush(
+                    self.scene.area_ellipseItem = QGraphicsEllipseItem(0, 0, 10, 10)
+                    self.scene.area_ellipseItem.setPos(p.x() - 10 / 2, p.y() - 10 / 2)
+                    self.scene.area_ellipseItem.setBrush(
                     QtGui.QBrush(QtGui.QColor('blue'))) #, style=QtCore.Qt.BrushStyle.SolidPattern))
-                    area_item.setFlag(
+                    self.scene.area_ellipseItem.setFlag(
                     QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations,
                     False)  #size stays small, but doesnt translate if set to false
-                    self.scene.addItem(area_item)
-                    #self.areas.append(area_item)
-                    
+                    self.scene.addItem(self.scene.area_ellipseItem)
                     #shade polygon region
                     points = [ QtCore.QPointF(x,y) for x,y in zip( self.A.x[k:], self.A.y[k:] ) ]
                     points.append(QtCore.QPointF(xi,yi))
-                    polyItem = QGraphicsPolygonItem(QtGui.QPolygonF(points))
-                    polyItem.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )
-                    self.scene.addItem(polyItem)
-                    #self.areas.append(polyItem)
-                    #self.lastadded.append("a")
+                    self.scene.polyItem = QGraphicsPolygonItem(QtGui.QPolygonF(points))
+                    self.scene.polyItem.setBrush( QtGui.QBrush(QtGui.QColor(255,255,255,127)) )
+                    self.scene.addItem(self.scene.polyItem)
 
-            testline = QGraphicsLineItem(QtCore.QLineF(start, end))
-            self.scene.addItem(testline)
+            self.scene.testline = QGraphicsLineItem(QtCore.QLineF(start, end))
+            self.scene.addItem(self.scene.testline)
         super().mouseMoveEvent(event)
 
     def mouseDoubleClickEvent(self, event):
