@@ -512,3 +512,8 @@ morphometrix/dist/morphometrix/scipy/stats/_statlib.cpython-310-darwin.so
 morphometrix/dist/morphometrix/scipy/stats/_stats.cpython-310-darwin.so
 morphometrix/dist/morphometrix/scipy/stats/_stats_pythran.cpython-310-darwin.so
 morphometrix/dist/morphometrix.dmg
+morphometrix/Morphometrix Intel.dmg
+morphometrix/Morphometrix M1:M2.dmg
+morphometrix/build_universal_MacOS.txt
+morphometrix/Morphometrix.dmg
+morphometrix/test_arch.py

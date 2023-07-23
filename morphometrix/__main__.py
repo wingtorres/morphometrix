@@ -12,10 +12,10 @@ from scipy.linalg import pascal
 from scipy.sparse import diags
 from scipy.optimize import root_scalar
 
-from PyQt6 import QtGui, QtCore
-from PyQt6.QtWidgets import QColorDialog ,QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsPixmapItem,QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
-from PyQt6.QtGui import QShortcut, QFont, QPixmap
-from PyQt6.QtCore import Qt
+from PySide6 import QtGui, QtCore
+from PySide6.QtWidgets import QColorDialog ,QGraphicsTextItem ,QComboBox, QMainWindow, QApplication, QGraphicsView, QGraphicsScene, QWidget, QToolBar, QPushButton, QLabel, QLineEdit, QPlainTextEdit, QGridLayout, QFileDialog, QGraphicsLineItem, QGraphicsPixmapItem,QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsItem, QMessageBox, QInputDialog, QDockWidget, QSizePolicy, QRadioButton
+from PySide6.QtGui import QShortcut, QFont, QPixmap
+from PySide6.QtCore import Qt
 
 # ------------------------------
 #   Developed By:
@@ -24,6 +24,13 @@ from PyQt6.QtCore import Qt
 #   Clara Bird
 #   Elliott Chimienti
 # ------------------------------
+#   Packages (Universal2 Installs and Wheels for MacOS!):
+#   Python 3.10.8
+#   PyQt6 6.5.1
+#   Numpy 1.21.6
+#   Scipy 1.9.1
+# ------------------------------
+
 
 def bezier(t,P,k,arc = False):
     """
@@ -246,7 +253,7 @@ class MainWindow(QMainWindow):
             self.iw.pixmap.width(),
             self.iw.pixmap.height(),
             QtCore.Qt.AspectRatioMode.KeepAspectRatio,
-            transformMode=QtCore.Qt.TransformationMode.SmoothTransformation)
+            QtCore.Qt.TransformationMode.SmoothTransformation)
         self.iw.scene.addPixmap(self.iw.pixmap_fit)  #add image
         self.iw.setScene(self.iw.scene)
 
@@ -366,27 +373,32 @@ class MainWindow(QMainWindow):
         else:
             self.areaButton.setChecked(False)
 
+    # TODO:
+    # Create list (creation_record) of PyQt objects drawn to screen in order of creation
+    # Pop length, angle, area, or width measurement lists depending on pop object in creation_record
     def undo(self):
 
-        if self.iw.measuring_length:
-            self.iw._thispos = self.iw._lastpos
-            self.iw.L.downdate()  #remove data
-            self.iw.line_count += -1
-            self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
-            self.iw.scene.realline = False
+        pass
 
-        if self.iw.measuring_area:
-            self.iw._thispos = self.iw._lastpos
-            self.iw.A.downdate()  #remove data
-            self.iw.line_count += -1
-            self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
-            self.iw.scene.realline = False
+        # if self.iw.measuring_length:
+        #     self.iw._thispos = self.iw._lastpos
+        #     self.iw.L.downdate()  #remove data
+        #     self.iw.line_count += -1
+        #     self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
+        #     self.iw.scene.realline = False
 
-        if self.iw.measuring_angle:
-            self.iw.T.downdate()  #remove data
-            self.iw._thispos = self.iw_lastpos
-            self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
-            self.iw.scene.realline = False
+        # if self.iw.measuring_area:
+        #     self.iw._thispos = self.iw._lastpos
+        #     self.iw.A.downdate()  #remove data
+        #     self.iw.line_count += -1
+        #     self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
+        #     self.iw.scene.realline = False
+
+        # if self.iw.measuring_angle:
+        #     self.iw.T.downdate()  #remove data
+        #     self.iw._thispos = self.iw_lastpos
+        #     self.iw.scene.removeItem(self.iw.scene.realline)  #remove graphic
+        #     self.iw.scene.realline = False
 
     def export_measurements(self):
         # Gets largest image dimension and divides it by its on screen dimension?
@@ -735,7 +747,7 @@ class imwin(QGraphicsView):  #Subclass QLabel for interaction w/ QPixmap
         # For Side Bias Label
         font = QFont()
         font.setPointSize(40)
-        font.setWeight(600)
+        font.setWeight(QFont.Weight.Bold)
         font.setPixelSize(int(self.pixmap_fit.width()/30))  # Set text size relative to screen dimensions
 
         for k,(pt,m) in enumerate(zip(B_i,bnorm)):
@@ -1042,7 +1054,7 @@ class MovingEllipse(QGraphicsPixmapItem):
 
     # Mouse Hover
     def hoverEnterEvent(self, event):
-        print("Hover")
+        #print("Hover")
         QApplication.setOverrideCursor(QtCore.Qt.CursorShape.OpenHandCursor)
 
     # Mouse Stops Hovering
@@ -1058,13 +1070,32 @@ class MovingEllipse(QGraphicsPixmapItem):
             updated_curs_pos = event.scenePos()
             orig_pos = self.scenePos()
 
-            # Update Y position of Ellipse to match mouse
-            updated_curs_y = updated_curs_pos.y() - orig_curs_pos.y() + orig_pos.y()
+            # Update position of Ellipse to match mouse
 
-            # Match X position of Ellipse to slope of line (m = (y1-y0)/(x1-x0))
-            # y/m - r = x
-            # Issue when line starting position goes below 0 (address in future!!)
-            updated_curs_x = updated_curs_y/self.m + self.x0
+            updated_curs_y = updated_curs_pos.y() - orig_curs_pos.y() + orig_pos.y()
+            updated_curs_x = updated_curs_pos.x() - orig_curs_pos.x() + orig_pos.x()
+            print("UPdate: ", updated_curs_y)
+            print("UPdate: ", updated_curs_y)
+
+            
+            # Use X of mouse when line is horizontal, and Y when verticle
+            if self.m > -0.5 and self.m < 0.5:
+                # y = mx + b
+                updated_curs_y = updated_curs_x*self.m + self.y0
+            else:
+                # x = y/m - r
+                updated_curs_x = updated_curs_y/self.m + self.x0
+
+            # Crosshairs wont exceed boundries
+            if updated_curs_y < 0:
+                updated_curs_y = 0
+            elif updated_curs_y > self.parent.scene.height():
+                updated_curs_y = self.parent.scene.height()
+
+            if updated_curs_x < 0:
+                updated_curs_x = 0
+            elif updated_curs_x > self.parent.scene.width():
+                updated_curs_x = self.parent.scene.width()
 
             self.setPos(QtCore.QPointF(updated_curs_x, updated_curs_y))
 
