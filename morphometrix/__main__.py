@@ -462,7 +462,7 @@ class MainWindow(QMainWindow):
                     writer.writerows(line)
 
                 writer.writerow([''])
-                writer.writerow(['Object'] + ['Area (m\u00B2)'])
+                writer.writerow(['Object'] + ['Area (m2)'])
 
                 for k, f in enumerate(self.areaNames):  #write areas
                     line = [[f] + ["{0:.3f}".format(areas[k])]]  #need to convert NaNs to empty
