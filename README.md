@@ -2,6 +2,12 @@
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.01825/status.svg)](https://doi.org/10.21105/joss.01825)
 [![DOI](https://zenodo.org/badge/202208604.svg)](https://zenodo.org/badge/latestdoi/202208604)
 
+
+Please visit the up-to-date git repo (Morphometrix V2), linked below. This repo exists for archival purposes only and is not actively supported.
+
+https://github.com/ZappyMan/MorphoMetriX-V2/
+--- 
+
 Let MorphoMetriX<sup>1</sup> streamline the often tedious process of making photogrammetric measurements for you, offering a quick intuitive GUI to calculate piecewise/arc lengths and width profiles along segments/curves and areas for polygons. 
     
 Also check out [CollatriX](https://github.com/cbirdferrer/collatrix)<sup>2</sup>, a GUI to collate multiple MorphoMetriX outputs into a single datafile with add-on functions for correcting altitude error from UAS (drone) flights and calculating animal body condition.
